@@ -115,7 +115,8 @@ class TemplateBuilderApp:
     # ---------------------------------------------------- internals
     @staticmethod
     def _display_available() -> bool:
-        if sys.platform.startswith("win"):
+        # Tratta macOS (darwin) come una piattaforma GUI nativa
+        if sys.platform.startswith("win") or sys.platform == "darwin":
             return True
         return bool(os.environ.get("DISPLAY"))
 
