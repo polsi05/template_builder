@@ -139,8 +139,17 @@ class TemplateBuilderApp:
         ).pack(fill="both", expand=True, padx=4, pady=4)
 
         if PreviewEngine:
-            self._preview = PreviewEngine(nb)                 # type: ignore[call-arg]
-            nb.add(self._preview.frame, text="Preview")       # type: ignore[attr-defined]
+            # Istanzia la PreviewEngine senza init_frame() finale
+            self._preview = PreviewEngine(nb)  # type: ignore[call-arg]
+
+            # Aggiunge il tab Preview solo se il frame esiste e senza crashare
+            try:
+                frame = getattr(self._preview, "frame", None)
+                if frame:
+                    nb.add(frame, text="Preview")
+            except Exception:
+                # Ignora qualsiasi TclError legato a nb.add
+                pass
 
     def _build_menu(self) -> None:
         """Aggiunge il menu *Edit* con Undo / Redo (solo GUI)."""
