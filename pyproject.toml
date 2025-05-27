@@ -1,6 +1,6 @@
 [project]
 name = "template_builder"
-version = "0.0.0"
+version = "0.1.0"
 description = "Refactor skeleton of the Template Builder GUI"
 authors = [{ name = "Your Name" }]
 requires-python = ">=3.9"
