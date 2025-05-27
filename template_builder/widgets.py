@@ -44,6 +44,7 @@ from .services import images as image_service
 
 __all__ = [
     "HAS_DND",
+    "HAS_TOOLTIP",
     "PlaceholderEntry",
     "PlaceholderMultiTextField",
     "MultiTextField",
@@ -51,6 +52,74 @@ __all__ = [
 ]
 
 _DEBOUNCE_MS = 300  # intervallo per la validazione live
+
+# ──────────────────────────────────────────────────────────────  Tooltip support
+try:  # un semplice import tkinter non crea finestre: sicuro anche in CI
+    import tkinter as _tk                                    # type: ignore
+    from tkinter import Toplevel as _Toplevel                # type: ignore
+
+    def _tooltip_available() -> bool:
+        """True se teoricamente potremmo creare un Toplevel (display permettendo)."""
+        # Non chiamiamo Tk() (creerebbe la finestra e fallirebbe in head-less):
+        # ci limitiamo a verificare che i simboli esistano.
+        return hasattr(_tk, "Misc") and hasattr(_tk, "Toplevel")
+
+    HAS_TOOLTIP: bool = _tooltip_available()
+
+    class _Tooltip:
+        """Piccolo balloon che segue il puntatore; distrutto su <Leave>."""
+
+        def __init__(self, widget: "_tk.Misc", text: str) -> None:  # type: ignore[name-defined]
+            self.win = _Toplevel(widget)
+            self.win.wm_overrideredirect(True)
+            self.win.attributes("-topmost", True)  # prima di tutto
+            lbl = _tk.Label(
+                self.win,
+                text=text,
+                justify="left",
+                bg="#ffffe0",
+                relief="solid",
+                borderwidth=1,
+                padx=4,
+                pady=2,
+            )
+            lbl.pack()
+            # posizioniamo accanto al mouse
+            x = widget.winfo_pointerx() + 20
+            y = widget.winfo_pointery() + 10
+            self.win.wm_geometry(f"+{x}+{y}")
+
+        def hide(self):
+            if self.win:
+                self.win.destroy()
+                self.win = None
+
+    def _attach_tooltip(widget: "_tk.Misc", tip: str) -> None:  # type: ignore[name-defined]
+        """Bind <Enter>/<Leave> per visualizzare un tooltip stringa *tip*."""
+        if not (HAS_TOOLTIP and tip):
+            return
+
+        tooltip: "_Tooltip" | None = None                      # noqa: PYI024
+
+        def _enter(_ev):  # noqa: D401
+            nonlocal tooltip
+            tooltip = _Tooltip(widget, tip)
+
+        def _leave(_ev):  # noqa: D401
+            nonlocal tooltip
+            if tooltip:
+                tooltip.hide()
+                tooltip = None
+
+        widget.bind("<Enter>", _enter)
+        widget.bind("<Leave>", _leave)
+
+except Exception:  # pragma: no cover – qualsiasi errore ⇒ nessun tooltip
+    HAS_TOOLTIP = False
+
+    def _attach_tooltip(*_a, **_kw):  # type: ignore[empty-body]
+        """Stub che non fa nulla quando i tooltip non sono disponibili."""
+        return
 
 # ──────────────────────────────────────────────────────────────  helpers UI
 
@@ -85,7 +154,10 @@ class PlaceholderEntry(tk.Entry):
         self.bind("<KeyRelease>", self._schedule_validation)
 
         self._show_placeholder_if_needed()
-
+        # Tooltip: usa la stringa placeholder come descrizione di base
+        _attach_tooltip(self, text_service.get_field_help(placeholder) or placeholder)
+        # Tooltip via campo placeholder
+        _attach_tooltip(self.text, text_service.get_field_help(placeholder) or placeholder)
     # ------------------------------------------------ events
     def _on_focus_in(self, _):
         if self._placeholder_on:
@@ -241,7 +313,11 @@ class SortableImageRepeaterField(ttk.Frame):
 
         entry.bind("<FocusOut>", lambda e, ent=entry: self._validate(ent))
         entry.bind("<KeyRelease>", lambda e, ent=entry: self._debounce_validate(ent))
-
+        _attach_tooltip(
+            entry,
+            text_service.get_field_help("IMG_URL")  # chiave standard per URL immagini
+            or "URL o percorso immagine supportato",
+        )   
         self._rows.append(row)
         row.pack(fill="x", pady=2)
 

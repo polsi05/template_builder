@@ -18,6 +18,7 @@ __all__ = [
     "auto_format",
     "extract_placeholders",
     "images_to_html",
+    "get_field_help",
 ]
 
 # ---------------------------------------------------------------------------
@@ -130,3 +131,18 @@ def images_to_html(rows: int, cols: int) -> str:
         out.append("  </tr>")
     out.append("</table>")
     return "\n".join(out)
+
+# ---------------------------------------------------------------------------
+# field-help map
+# ---------------------------------------------------------------------------
+
+_HELP_DEFAULTS = {
+    "TITLE": "Titolo principale mostrato nell'anteprima.",
+    "DESCRIPTION": "Descrizione testuale; supporta lista puntata e grassetto.",
+    "IMG_URL": "Incolla un URL https:// o un percorso locale a un file immagine.",
+}
+
+
+def get_field_help(key: str) -> str:
+    """Ritorna la stringa di help contestuale per *key* (case-insensitive)."""
+    return _HELP_DEFAULTS.get(key.upper(), "")
