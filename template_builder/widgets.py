@@ -154,10 +154,9 @@ class PlaceholderEntry(tk.Entry):
         self.bind("<KeyRelease>", self._schedule_validation)
 
         self._show_placeholder_if_needed()
-        # Tooltip: usa la stringa placeholder come descrizione di base
+        # Tooltip sul widget Entry
         _attach_tooltip(self, text_service.get_field_help(placeholder) or placeholder)
-        # Tooltip via campo placeholder
-        _attach_tooltip(self.text, text_service.get_field_help(placeholder) or placeholder)
+        
     # ------------------------------------------------ events
     def _on_focus_in(self, _):
         if self._placeholder_on:
