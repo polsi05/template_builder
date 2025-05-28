@@ -32,7 +32,6 @@ _ttk         = _safe("tkinter.ttk")
 _widgets_mod = _safe("template_builder.widgets")
 _services    = _safe("template_builder.services.storage")
 _preview_mod = _safe("template_builder.infrastructure.preview_engine")
-_ui_utils    = _safe("template_builder.infrastructure.ui_utils")
 
 PlaceholderEntry          = getattr(_widgets_mod, "PlaceholderEntry", object)
 PlaceholderMultiTextField = getattr(_widgets_mod, "PlaceholderMultiTextField", object)
@@ -40,7 +39,6 @@ UndoRedoStack             = getattr(_services, "UndoRedoStack", lambda: None)
 quick_save_fn             = getattr(_services, "quick_save",   lambda *_: None)
 load_recipe_fn            = getattr(_services, "load_recipe", lambda *_: {})
 PreviewEngine             = getattr(_preview_mod, "PreviewEngine", None)
-bind_mousewheel           = getattr(_ui_utils, "bind_mousewheel", lambda widget: None)
 
 tk  = _tk  if hasattr(_tk,  "Tk")   else None
 ttk = _ttk if hasattr(_ttk, "Frame") else None       # type: ignore[assignment]
@@ -132,40 +130,26 @@ class TemplateBuilderApp:
         nb = ttk.Notebook(self.root)                          # type: ignore[arg-type]
         nb.pack(fill="both", expand=True)
 
-        # Abilita smart-scroll sul notebook
-        bind_mousewheel(nb)
-
         content = ttk.Frame(nb)                               # type: ignore[arg-type]
         nb.add(content, text="Content")
 
         PlaceholderEntry(content, placeholder="Title").pack(fill="x", padx=4, pady=4)
-        desc_field = PlaceholderMultiTextField(content, placeholder="Description…")
-        desc_field.pack(fill="both", expand=True, padx=4, pady=4)
-
-        # Abilita smart-scroll sul campo di testo della descrizione
-        bind_mousewheel(desc_field)
+        PlaceholderMultiTextField(
+            content, placeholder="Description…"
+        ).pack(fill="both", expand=True, padx=4, pady=4)
 
         if PreviewEngine:
             # Istanzia la PreviewEngine senza init_frame() finale
             self._preview = PreviewEngine(nb)  # type: ignore[call-arg]
 
             # Aggiunge il tab Preview solo se il frame esiste e senza crashare
-            frame = None
             try:
                 frame = getattr(self._preview, "frame", None)
                 if frame:
                     nb.add(frame, text="Preview")
             except Exception:
-                # ignora eventuali errori Tcl durante nb.add
+                # Ignora qualsiasi TclError legato a nb.add
                 pass
-        if frame:
-            # Abilita smart-scroll sul tab preview
-            bind_mousewheel(frame)
-        # Abilita lo scroll fluido sul notebook e sulle sezioni scrollabili
-        bind_mousewheel(nb)
-        bind_mousewheel(desc_field)
-        if frame:
-            bind_mousewheel(frame)
 
     def _build_menu(self) -> None:
         """Aggiunge il menu *Edit* con Undo / Redo (solo GUI)."""
