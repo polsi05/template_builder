@@ -54,7 +54,6 @@ for p in (TEMPLATE_FOLDER, EXPORT_FOLDER):
 _text_mod = _safe("template_builder.services.text")
 extract_placeholders_fn = getattr(_text_mod, "extract_placeholders", lambda src: set())
 smart_paste_fn          = getattr(_text_mod, "smart_paste", lambda raw: [raw] if isinstance(raw, str) else [str(x) for x in raw])
-auto_format_fn         = getattr(_text_mod, "auto_format", lambda text, mode: text)
 
 class TemplateBuilderApp:
     """Modern, modular controller for Template Builder."""
@@ -499,30 +498,19 @@ class TemplateBuilderApp:
     def _collect(self) -> Dict[str, Any]:
         """Collect current inputs into context dict."""
         data: Dict[str, Any] = {}
-        # Text fields (with auto-format HTML for multi-text)
+        # Text fields
         for k, w in self.fields.items():
-            # 1) estrai valore “raw” dal widget
             try:
                 if hasattr(w, "render_html"):
-                    raw = w.render_html()
+                    data[k] = w.render_html()
                 elif hasattr(w, "get_value"):
-                    raw = w.get_value()
+                    data[k] = w.get_value()
                 elif hasattr(w, "get_raw"):
-                    raw = w.get_raw()
+                    data[k] = w.get_raw()
                 else:
-                    raw = w.get().strip()
+                    data[k] = w.get().strip()
             except Exception:
-                raw = ""
-            # 2) se il widget ha un attributo 'mode', applica auto_format
-            mode = getattr(w, "mode", None)
-            if mode is not None:                
-                try:
-                    data[k] = auto_format_fn(raw, mode)
-                except Exception:
-                    data[k] = raw
-            else:
-                data[k] = raw
-            
+                data[k] = ""
         # Image lists and columns
         data["IMAGES_DESC"] = (self.img_desc.get_urls()
                                if self.img_desc and hasattr(self.img_desc, "get_urls") else [])
