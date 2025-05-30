@@ -18,6 +18,7 @@ import os
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 from ..assets import DEFAULT_COLS
+from .text import smart_paste
 
 try:
     # Pillow è opzionale: se non è disponibile le funzioni che ne fanno uso
@@ -31,6 +32,8 @@ __all__ = [
     "generate_placeholders",
     "encode_file_to_data_uri",
     "paths_to_html_grid",
+    "smart_paste_images",
+    "images_to_html",
     # legacy compat
     "validate_url",
     "fetch_metadata",
@@ -43,7 +46,7 @@ __all__ = [
 def guess_grid(n_images: int, *, cols: int = DEFAULT_COLS) -> Tuple[int, int]:
     """Calcola automaticamente (righe, colonne) per *n_images*.
 
-    * `cols definisce la larghezza massima; se *n_images* è minore viene
+    * `cols` definisce la larghezza massima; se *n_images* è minore viene
       ridotto di conseguenza.
     * Restituisce sempre valori ≥1.
     """
@@ -62,12 +65,12 @@ def guess_grid(n_images: int, *, cols: int = DEFAULT_COLS) -> Tuple[int, int]:
 # ---------------------------------------------------------------------------
 
 def _placeholder(index: int) -> str:
-    """Restituisce il placeholder Jinja2 `{{ IMG<index> }}."""
+    """Restituisce il placeholder Jinja2 `{{ IMG<index> }}`."""
     return f"{{{{ IMG{index} }}}}"
 
 
 def generate_placeholders(n_images: int) -> List[str]:
-    """Genera la sequenza di placeholder `{{ IMG1 }}, {{ IMG2 }}, …"""
+    """Genera la sequenza di placeholder `{{ IMG1 }}, {{ IMG2 }}, …`"""
     return [_placeholder(i) for i in range(1, max(1, int(n_images)) + 1)]
 
 
@@ -101,6 +104,7 @@ def encode_file_to_data_uri(path: os.PathLike | str, *, mime: str | None = None)
         b64 = base64.b64encode(fh.read()).decode("ascii")
     return f"data:{mime};base64,{b64}"
 
+
 # ---------------------------------------------------------------------------
 # HTML helpers
 # ---------------------------------------------------------------------------
@@ -119,12 +123,12 @@ def paths_to_html_grid(
 ) -> str:
     """Genera una *grid* HTML <table> riempiendola con le immagini *paths*.
 
-    * Se `inline=True le immagini vengono incorporate come Data‑URI.
-    * In caso di `paths=None (o lista vuota) viene generata la griglia di
-      *placeholder* tramite :func:generate_placeholders.
+    * Se `inline=True` le immagini vengono incorporate come Data‑URI.
+    * In caso di `paths=None` (o lista vuota) viene generata la griglia di
+      *placeholder* tramite :func:`generate_placeholders`.
     """
     if not paths:
-        # fallback a placeholder identici alla logica di `text.images_to_html
+        # fallback a placeholder identici alla logica di `text.images_to_html`
         # (row‑major, numerazione da 1)
         n_images = 1
         rows, cols = 1, 1
@@ -157,6 +161,38 @@ def paths_to_html_grid(
     out.append("</table>")
     return "\n".join(out)
 
+
+def images_to_html(
+    paths: Sequence[str | os.PathLike] | None,
+    *,
+    cols: int = DEFAULT_COLS,
+    inline: bool = False,
+    alt_texts: Sequence[str] | None = None,
+) -> str:
+    """Genera una *grid* HTML <table> con le immagini *paths*.
+
+    Funziona come paths_to_html_grid: se *paths* è None o vuoto, genera segnaposto.
+    """
+    return paths_to_html_grid(paths, cols=cols, inline=inline, alt_texts=alt_texts)
+
+
+# ---------------------------------------------------------------------------
+# Smart-paste per immagini
+# ---------------------------------------------------------------------------
+
+def smart_paste_images(raw: str | Sequence[str]) -> List[str]:
+    """Restituisce una lista di URL immagine "puliti" da incollare.
+
+    Accetta:
+      * stringa di testo (multilinea o con ";" che separa più URL)
+      * lista/tupla di stringhe
+
+    Ritorna:
+      Lista di URL immagine (senza spazi iniziali/finali).
+    """
+    return smart_paste(raw)
+
+
 # ---------------------------------------------------------------------------
 # Legacy validator wrapper + metadata fetch
 # ---------------------------------------------------------------------------
@@ -168,7 +204,7 @@ def validate_url(url: str) -> None:
     _legacy_validate(url)
 
 def fetch_metadata(path: os.PathLike | str) -> Dict[str, int | str]:
-    """Restituisce {width, height, format}. Richiede Pillow."""
+    """Restituisce {width, height, format} di un'immagine. Richiede Pillow."""
     _ensure_pillow()
     with Image.open(path) as img:  # type: ignore[arg-type]
         return {
