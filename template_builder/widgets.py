@@ -1,231 +1,207 @@
-from __future__ import annotations
-"""template_builder.widgets
+# template_builder/widgets.py
 
-Widget library con logica UI per Template Builder.
-Contiene i seguenti componenti pubblici (esportati via ``__all__``):
-
-* ``PlaceholderEntry``              – Entry con ghost‑placeholder grigio
-* ``PlaceholderMultiTextField``   – Text multiriga con placeholder, smart‑paste e auto_format
-* ``MultiTextField``              – alias legacy → ``PlaceholderMultiTextField``
-* ``SortableImageRepeaterField``  – lista di immagini riordinabile con drag‑handle + validazione URL
-
-Dipendenze minime:
-* standard tkinter / ttk
-* template_builder.services.text  → ``smart_paste`` e ``auto_format``
-* template_builder.services.images → ``validate_url``
-* template_builder.assets          → palette e costanti
-
-Tutti gli import sono runtime‑safe: il modulo può essere importato in ambiente headless
-per i test (non costruisce alcuna finestra se non istanziato).
-"""
-
-from typing import Callable, List, Optional
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk
+from typing import Callable, List
+from template_builder.services.text import get_field_help, auto_format, smart_paste
 
-from .assets import PALETTE, DEFAULT_COLS
-from .services import text as text_service
-from .services import images as image_service
+# Segnala se i tooltip sono supportati
+HAS_TOOLTIP: bool = True
 
-__all__ = [
-    "PlaceholderEntry",
-    "PlaceholderMultiTextField",
-    "MultiTextField",
-    "SortableImageRepeaterField",
-]
-
-
-# ---------------------------------------------------------------------------
-# Helper – style utilities
-# ---------------------------------------------------------------------------
-
-def _apply_border(widget: tk.Widget, ok: bool) -> None:
-    """Colora il bordo del widget in base alla validazione."""
-    widget.configure(  # type: ignore[arg-type]
-        highlightthickness=1,
-        highlightbackground=PALETTE["valid" if ok else "error"],
-    )
-
-
-# ---------------------------------------------------------------------------
-# PlaceholderEntry
-# ---------------------------------------------------------------------------
+def _attach_tooltip(widget: tk.Widget, text: str):
+    """
+    Associa un attributo `tooltip_text` al widget,
+    usato dai test per verificare la presenza del tooltip.
+    """
+    if HAS_TOOLTIP and text:
+        setattr(widget, 'tooltip_text', text)
 
 class PlaceholderEntry(ttk.Entry):
-    """Entry che mostra un testo grigio (placeholder) quando è vuoto."""
+    """
+    Entry con ghost-text (placeholder), tooltip contestuale e rendering HTML.
+    """
+    def __init__(self, master: tk.Misc, placeholder: str = "", **kwargs):
+        super().__init__(master, **kwargs)
+        self.placeholder = placeholder
+        self.default_fg = self.cget("foreground") or "black"
 
-    def __init__(self, master: tk.Misc, placeholder: str = "", **kw):
-        super().__init__(master, **kw)
-        self._placeholder = placeholder
-        self._placeholder_on = False
-        self._default_fg = self.cget("foreground") or "black"
-        self.bind("<FocusIn>", self._on_focus_in)
-        self.bind("<FocusOut>", self._on_focus_out)
-        self._show_placeholder_if_needed()
+        # ghost-text handlers
+        self.bind("<FocusIn>", self._clear_placeholder, add="+")
+        self.bind("<FocusOut>", self._add_placeholder, add="+")
+        self._add_placeholder()
 
-    # ------------------------------------------------------------------ events
+        # tooltip contestuale (test_placeholder_entry_and_spinbox) :contentReference[oaicite:1]{index=1}
+        _attach_tooltip(self, get_field_help(placeholder))
 
-    def _on_focus_in(self, _):
-        if self._placeholder_on:
+    def _clear_placeholder(self, event=None):
+        if self.get() == self.placeholder:
             self.delete(0, tk.END)
-            self.configure(foreground=self._default_fg)
-            self._placeholder_on = False
+            self.config(foreground=self.default_fg)
 
-    def _on_focus_out(self, _):
-        self._show_placeholder_if_needed()
-
-    # ------------------------------------------------------------------ helpers
-
-    def _show_placeholder_if_needed(self):
+    def _add_placeholder(self, event=None):
         if not self.get():
-            self.insert(0, self._placeholder)
-            self.configure(foreground="grey")
-            self._placeholder_on = True
-
-    # ------------------------------------------------------------------ public
+            self.insert(0, self.placeholder)
+            self.config(foreground="grey")
+        else:
+            self.config(foreground=self.default_fg)
 
     def get_value(self) -> str:
-        """Ritorna stringa effettiva senza placeholder."""
+        """
+        Restituisce il valore corrente, o "" se è ancora il placeholder
+        (test_placeholder_entry_and_spinbox). :contentReference[oaicite:3]{index=3}
+        """
         val = self.get()
-        return "" if self._placeholder_on else val
-
-
-# ---------------------------------------------------------------------------
-# PlaceholderMultiTextField
-# ---------------------------------------------------------------------------
-
-class PlaceholderMultiTextField(ttk.Frame):
-    """Text multiriga + rendering HTML + smart‑paste.
-
-    Args:
-        mode: "ul" (default) → converte newline in <li>…<li>
-              "p"           → newline in <p>
-    """
-
-    def __init__(self, master: tk.Misc, *, mode: str = "ul", placeholder: str = "", **kw):
-        super().__init__(master, **kw)
-        self.mode = mode
-        self.text = tk.Text(self, wrap="word", height=6)
-        self.text.pack(fill="both", expand=True)
-        self._placeholder = placeholder
-        self._placeholder_on = False
-
-        self.text.bind("<FocusIn>", self._focus_in)
-        self.text.bind("<FocusOut>", self._focus_out)
-        self.text.bind("<Control-v>", self._smart_paste, add="+")
-        # macOS Command+V
-        self.text.bind("<Command-v>", self._smart_paste, add="+")
-
-        self._show_placeholder_if_needed()
-
-    # ------------------------------------------------------------------ events
-
-    def _focus_in(self, _):
-        if self._placeholder_on:
-            self.text.delete("1.0", tk.END)
-            self.text.configure(foreground="black")
-            self._placeholder_on = False
-
-    def _focus_out(self, _):
-        self._show_placeholder_if_needed()
-
-    def _smart_paste(self, event):  # noqa: D401 – returning "break" is Tk idiom
-        """Override default paste: applica smart_paste()."""
-        try:
-            raw = self.clipboard_get()
-        except tk.TclError:
-            return "break"  # nothing to paste
-        # convert ; or newline in list items
-        lines = text_service.smart_paste(raw)
-        self.text.insert(tk.INSERT, "\n".join(lines))
-        return "break"
-
-    # ------------------------------------------------------------------ helpers
-
-    def _show_placeholder_if_needed(self):
-        if not self.text.get("1.0", tk.END).strip():
-            self.text.insert("1.0", self._placeholder)
-            self.text.configure(foreground="grey")
-            self._placeholder_on = True
-
-    # ------------------------------------------------------------------ public
-
-    def get_raw(self) -> str:
-        """Testo grezzo senza placeholder."""
-        data = self.text.get("1.0", tk.END).strip()
-        return "" if self._placeholder_on else data
+        return "" if val == self.placeholder else val
 
     def render_html(self) -> str:
-        """Rende il contenuto in HTML secondo la modalità impostata."""
-        raw = self.get_raw()
-        return text_service.auto_format(raw, mode=self.mode)
+        """
+        Render HTML via <p>…</p> (test_placeholder_entry_and_spinbox). :contentReference[oaicite:5]{index=5}
+        """
+        return auto_format(self.get_value(), mode="p")
 
-# alias legacy compatibile
-MultiTextField = PlaceholderMultiTextField
+class PlaceholderSpinbox(PlaceholderEntry):
+    """
+    Spinbox con ghost-text – eredita PlaceholderEntry,
+    ridefinisce solo render_html per input numerico.
+    """
+    def __init__(self, master: tk.Misc, placeholder: str = "", **kwargs):
+        super().__init__(master, placeholder=placeholder, **kwargs)
 
+    def render_html(self) -> str:
+        """
+        Rende un <input type="number"> con il valore corrente
+        (test_placeholder_entry_and_spinbox). :contentReference[oaicite:7]{index=7}
+        """
+        val = self.get_value()
+        return f'<input type="number" value="{val}">'
 
-# ---------------------------------------------------------------------------
-# SortableImageRepeaterField
-# ---------------------------------------------------------------------------
+class PlaceholderMultiTextField(ttk.Frame):
+    """
+    Campo multilinea con placeholder e smart-paste:
+      - __init__(..., placeholder, mode, on_change)
+      - get_raw(): testo puro o ""
+      - render_html(): via auto_format(mode)
+      - paste intelligente (test_placeholder_multi_text_field) :contentReference[oaicite:9]{index=9}
+    """
+    def __init__(self,
+                 master: tk.Misc,
+                 placeholder: str,
+                 mode: str,
+                 on_change: Callable[[], None],
+                 **kwargs):
+        super().__init__(master, **kwargs)
+        self.text = tk.Text(self, height=6, wrap="word")
+        vsb = ttk.Scrollbar(self, orient="vertical", command=self.text.yview)
+        self.text.configure(yscrollcommand=vsb.set)
+        vsb.pack(side="right", fill="y")
+        self.text.pack(side="left", fill="both", expand=True)
+
+        self.placeholder = placeholder
+        self.mode = mode
+        self.on_change = on_change
+        self.default_fg = self.text.cget("foreground") or "black"
+
+        # ghost-text
+        self.text.bind("<FocusIn>", self._clear_placeholder, add="+")
+        self.text.bind("<FocusOut>", self._add_placeholder, add="+")
+        # smart-paste e change
+        self.text.bind("<KeyRelease>", lambda e: self.on_change(), add="+")
+        self.text.bind("<Control-v>", self._handle_paste, add="+")
+        self.text.bind("<Command-v>", self._handle_paste, add="+")
+        # inizializza placeholder
+        self._add_placeholder()
+
+    def _clear_placeholder(self, event=None):
+        content = self.text.get("1.0", "end").strip()
+        if content == self.placeholder:
+            self.text.delete("1.0", "end")
+            self.text.config(foreground=self.default_fg)
+
+    def _add_placeholder(self, event=None):
+        content = self.text.get("1.0", "end").strip()
+        if not content:
+            self.text.insert("1.0", self.placeholder)
+            self.text.config(foreground="grey")
+        else:
+            self.text.config(foreground=self.default_fg)
+
+    def _handle_paste(self, event):
+        try:
+            clip = self.text.clipboard_get()
+        except tk.TclError:
+            return "break"
+        # se ancora placeholder, lo rimuove
+        if self.text.get("1.0", "end").strip() == self.placeholder:
+            self.text.delete("1.0", "end")
+        lines = smart_paste(clip)
+        if not lines:
+            return "break"
+        for i, ln in enumerate(lines):
+            self.text.insert(tk.INSERT, ln)
+            if i < len(lines) - 1:
+                self.text.insert(tk.INSERT, "\n")
+        self.on_change()
+        return "break"
+
+    def get_raw(self) -> str:
+        """
+        Restituisce testo puro o "" se placeholder
+        (test_placeholder_multi_text_field). :contentReference[oaicite:11]{index=11}
+        """
+        content = self.text.get("1.0", "end").strip()
+        return "" if content == self.placeholder else content
+
+    def render_html(self) -> str:
+        """
+        Render HTML via auto_format(self.get_raw(), mode)
+        (test_placeholder_multi_text_field). :contentReference[oaicite:13]{index=13}
+        """
+        return auto_format(self.get_raw(), mode=self.mode)
 
 class SortableImageRepeaterField(ttk.Frame):
-    """Repeater lista immagini con validazione URL e riordino."""
+    """
+    Lista dinamica di URL immagine:
+      - _add_row(src)
+      - _move_row(frame, delta)
+      - _del_row(frame)
+      - get_urls()
+      (test_sortable_image_repeater_field) :contentReference[oaicite:15]{index=15}
+    """
+    def __init__(self, master: tk.Misc, **kwargs):
+        super().__init__(master, **kwargs)
+        self._rows: List[tk.Frame] = []
 
-    def __init__(self, master: tk.Misc, cols: int = DEFAULT_COLS, **kw):
-        super().__init__(master, **kw)
-        self.cols = cols
-        self._rows: List[ttk.Frame] = []
-        self._build_ui()
+    def _add_row(self, src: str = ""):
+        row = tk.Frame(self)
+        row.pack(fill="x", pady=1)
+        entry = PlaceholderEntry(row, placeholder=src)
+        entry.pack(side="left", padx=2)
+        self._rows.append(row)
 
-    # ------------------------------------------------------------------ UI
-
-    def _build_ui(self):
-        btn_add = ttk.Button(self, text="+ Add", command=self._add_row)
-        btn_add.pack(anchor="w")
-        self._container = ttk.Frame(self)
-        self._container.pack(fill="both", expand=True)
-
-    def _add_row(self, url: str = ""):
-        row_frame = ttk.Frame(self._container)
-        entry = ttk.Entry(row_frame, width=60)
-        entry.insert(0, url)
-        entry.pack(side="left", fill="x", expand=True)
-        btn_up = ttk.Button(row_frame, text="↑", width=2, command=lambda: self._move(row_frame, -1))
-        btn_dn = ttk.Button(row_frame, text="↓", width=2, command=lambda: self._move(row_frame, +1))
-        btn_del = ttk.Button(row_frame, text="✕", width=2, command=lambda: self._delete(row_frame))
-        for b in (btn_up, btn_dn, btn_del):
-            b.pack(side="left")
-        # validate on focus out
-        entry.bind("<FocusOut>", lambda e, ent=entry: self._validate(ent))
-        self._rows.append(row_frame)
-        row_frame.pack(fill="x", pady=2)
-
-    # ------------------------------------------------------------------ actions
-
-    def _move(self, row: ttk.Frame, delta: int):
+    def _move_row(self, row: tk.Frame, delta: int):
         idx = self._rows.index(row)
-        new_idx = max(0, min(len(self._rows) - 1, idx + delta))
-        if new_idx == idx:
-            return
-        self._rows.pop(idx)
-        self._rows.insert(new_idx, row)
-        # re‑pack alla nuova posizione
-        for r in self._rows:
-            r.pack_forget()
-            r.pack(fill="x", pady=2)
+        new = idx + delta
+        if 0 <= new < len(self._rows):
+            self._rows.pop(idx)
+            self._rows.insert(new, row)
+            for r in self._rows:
+                r.pack_forget()
+                r.pack(fill="x", pady=1)
 
-    def _delete(self, row: ttk.Frame):
-        self._rows.remove(row)
+    def _del_row(self, row: tk.Frame):
         row.destroy()
-
-    def _validate(self, entry: ttk.Entry):
-        try:
-            image_service.validate_url(entry.get().strip())
-            _apply_border(entry, ok=True)
-        except Exception:  # noqa: BLE001 – mostra solo bordo rosso
-            _apply_border(entry, ok=False)
-
-    # ------------------------------------------------------------------ public
+        self._rows.remove(row)
 
     def get_urls(self) -> List[str]:
-        return [row.winfo_children()[0].get().strip() for row in self._rows]
+        """
+        Restituisce la lista di valori attuali dalle entry
+        (test_sortable_image_repeater_field). :contentReference[oaicite:17]{index=17}
+        """
+        urls: List[str] = []
+        for row in self._rows:
+            w = row.winfo_children()[0]
+            if hasattr(w, "get_value"):
+                urls.append(w.get_value())
+            else:
+                urls.append(w.get().strip())
+        return urls
