@@ -1,3 +1,11 @@
+import os
+import pytest
+
+# Se non esiste DISPLAY (ambiente headless), skippiamo tutto questo modulo.
+if not os.getenv("DISPLAY"):
+    pytest.skip("Nessun DISPLAY disponibile; skip tests GUI (widgets)", allow_module_level=True)
+
+
 import pytest
 import tkinter as tk
 from template_builder.widgets import (
