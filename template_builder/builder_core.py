@@ -66,17 +66,28 @@ class TemplateBuilderApp:
             self._state = {}
 
     def audit_placeholders(self) -> list[str]:
-        """
-        Estrae {{TAG}} da template_src e segnala tramite dialog le differenze
-        rispetto a _state.
-        """
-        tpl = getattr(self, "template_src", "")
-        found = extract_placeholders(tpl)
-        lines = []
-        for tag in found:
-            mark = "✅" if tag in self._state else "❌"
-            lines.append(f"{mark} {tag}")
-        show_info("\n".join(lines))
+        """Controlla quali segnaposto {{TAG}} del template sono coperti dallo stato.
+        Restituisce una lista di stringhe del tipo "✅ TAG" o "❌ TAG", in ordine alfabetico.
+        Se un tag termina con "_ALT" e la corrispondente chiave con "_SRC" esiste nello stato,
+        lo consideriamo comunque presente (✅)."""
+        # Ricava tutti i segnaposto dal template HTML corrente
+        tags = extract_placeholders(self.template_src or "")
+        # Lista di righe risultato
+        lines: list[str] = []
+        for tag in sorted(tags):
+            if tag in self._state:
+                # Il tag è direttamente presente nello stato
+                lines.append(f"✅ {tag}")
+            else:
+                # Se termina in _ALT e il corrispondente _SRC è presente, consideralo presente
+                if tag.endswith("_ALT"):
+                    base = tag[: -len("_ALT")]
+                    src_key = base + "_SRC"
+                    if src_key in self._state:
+                        lines.append(f"✅ {tag}")
+                        continue
+                # Altrimenti, manca
+                lines.append(f"❌ {tag}")
         return lines
 
     # alias per compatibilità con demo CLI
