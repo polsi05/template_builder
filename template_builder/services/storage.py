@@ -2,15 +2,14 @@ from __future__ import annotations
 """template_builder.services.storage
 
 Funzioni di persistenza *pure*.
-Se **Jinja2** non è installato, il modulo resta importabile: la funzione
-``export_html`` solleverà RuntimeError sul primo utilizzo (comportamento
-lazy-import) ma gli altri helper continueranno a funzionare – questo rende
-il pacchetto installabile senza dipendenze pesanti.
+Se Jinja2 non è installato, `export_html` utilizza un semplice fallback
+che sostituisce i segnaposto {{ key }} con i valori del contesto.
 """
 
 import json
 import os
 import time
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -33,7 +32,6 @@ class UndoRedoStack:
 
     def push(self, state: Any) -> None:
         """Aggiunge uno stato alla cronologia e taglia eventuali redo futuri."""
-        # se push su uno stato intermedio, elimino tutti i successivi
         if self._index < len(self._history) - 1:
             self._history = self._history[: self._index + 1]
         self._history.append(state)
@@ -83,30 +81,60 @@ def load_recipe(path: Union[os.PathLike, str]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Funzione di rendering semplice (fallback quando Jinja2 non è disponibile)
+# ---------------------------------------------------------------------------
+_PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*(\w+)\s*\}\}")
+
+def _simple_render(template_content: str, ctx: Dict[str, Any]) -> str:
+    """
+    Sostituisce ogni occorrenza di {{ key }} con str(ctx[key]) se esiste,
+    altrimenti lascia il placeholder invariato.
+    """
+    def _replace(match: re.Match[str]) -> str:
+        key = match.group(1)
+        if key in ctx:
+            return str(ctx[key])
+        return match.group(0)  # lascio invariato se mancante
+    return _PLACEHOLDER_PATTERN.sub(_replace, template_content)
+
+
+# ---------------------------------------------------------------------------
 # export_html: render Jinja2 o fallback semplice
 # ---------------------------------------------------------------------------
-def _ensure_jinja2() -> None:
-    try:
-        import jinja2  # type: ignore
-    except ImportError:
-        raise RuntimeError("Jinja2 non installato: impossibile esportare in HTML.")
-
-
 def export_html(ctx: Dict[str, Any], template_path: Union[str, Path], **env_kw: Any) -> str:
-    """Renderizza html via Jinja2 se disponibile, altrimenti solleva errore."""
-    from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
+    """Renderizza HTML da un template:
+    
+    - Se Jinja2 è disponibile, lo usa per il rendering completo.
+    - Altrimenti, viene usato un semplice fallback (_simple_render) che
+      sostituisce solo i placeholders {{ key }} con i valori dal contesto.
 
-    _ensure_jinja2()
+    L'argomento opzionale 'save_to' in env_kw può essere passato come
+    percorso per salvare l'HTML generato su file.
+    """
     template_path = Path(template_path)
-    env = Environment(
-        loader=FileSystemLoader(str(template_path.parent)),
-        autoescape=select_autoescape(["html", "htm"]),
-    )
-    tpl = env.get_template(template_path.name)  # type: ignore[arg-type]
-    html_str = tpl.render(**ctx)
+    # 1) Provo a usare Jinja2
+    try:
+        from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
+        env = Environment(
+            loader=FileSystemLoader(str(template_path.parent)),
+            autoescape=select_autoescape(["html", "htm"]),
+        )
+        tpl = env.get_template(template_path.name)  # type: ignore[arg-type]
+        html_str = tpl.render(**ctx)
+    except (ImportError, ModuleNotFoundError):
+        # Fallback: leggero, sostituzione placeholder
+        try:
+            content = template_path.read_text(encoding="utf-8")
+        except Exception as e:
+            raise RuntimeError(f"Impossibile leggere il template: {e}")
+        html_str = _simple_render(content, ctx)
 
+    # 2) Se è stato passato 'save_to', salvo anche su file
     save_to: Optional[Path] = env_kw.get("save_to")  # type: ignore[arg-type]
     if save_to:
-        save_to = Path(save_to)
-        save_to.write_text(html_str, encoding="utf-8")
+        try:
+            dest = Path(save_to)
+            dest.write_text(html_str, encoding="utf-8")
+        except Exception as e:
+            raise RuntimeError(f"Errore scrittura su file '{save_to}': {e}")
     return html_str
