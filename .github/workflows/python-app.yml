@@ -1,17 +1,19 @@
+# .github/workflows/python-app.yml
+
 name: Python CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11, 3.12]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,6 +28,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install jinja2  # opzionale, se vuoi testare Jinja2
-          
+
       - name: Run tests
         run: pytest -q --maxfail=1 --disable-warnings
