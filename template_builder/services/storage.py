@@ -1,17 +1,17 @@
-from __future__ import annotations
 """template_builder.services.storage
 
 Funzioni di persistenza *pure*.
-Se Jinja2 non è installato, `export_html` utilizza un semplice fallback
-che sostituisce i segnaposto {{ key }} con i valori del contesto.
+Se **Jinja2** non è installato, il modulo resta importabile: la funzione
+``export_html`` utilizzerà un semplice fallback per sostituire i placeholder
+in stile {{ key }}; in futuro si potrà usare Jinja2 per funzionalità avanzate.
 """
 
 import json
 import os
-import time
+import tempfile
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 __all__ = [
     "UndoRedoStack",
@@ -20,121 +20,111 @@ __all__ = [
     "export_html",
 ]
 
-# ---------------------------------------------------------------------------
-# CLASSE per undo/redo
-# ---------------------------------------------------------------------------
 class UndoRedoStack:
-    """Stack per gestire storicizzazione (undo/redo) di stati immutabili."""
-
+    """
+    Implementa uno stack per undo/redo di stati serializzabili (ad es. dict).
+    """
     def __init__(self) -> None:
         self._history: List[Any] = []
         self._index: int = -1
 
     def push(self, state: Any) -> None:
-        """Aggiunge uno stato alla cronologia e taglia eventuali redo futuri."""
+        # Se push dopo undo, tronca la parte "futura"
         if self._index < len(self._history) - 1:
             self._history = self._history[: self._index + 1]
+        # Aggiungi copia dello stato
         self._history.append(state)
         self._index = len(self._history) - 1
 
     def undo(self) -> Any:
-        """Torna allo stato precedente; se non esiste, restituisce l’ultimo conosciuto."""
+        """
+        Torna allo stato precedente, se possibile, altrimenti solleva IndexError.
+        """
         if self._index <= 0:
-            return self._history[0] if self._history else {}
+            raise IndexError("Nessuno stato precedente.")
         self._index -= 1
         return self._history[self._index]
 
     def redo(self) -> Any:
-        """Torna allo stato successivo; se non esiste, restituisce l’ultimo conosciuto."""
+        """
+        Torna allo stato successivo, se possibile, altrimenti solleva IndexError.
+        """
         if self._index >= len(self._history) - 1:
-            return self._history[self._index] if self._history else {}
+            raise IndexError("Nessuno stato successivo.")
         self._index += 1
         return self._history[self._index]
 
-
-# ---------------------------------------------------------------------------
-# quick_save: salva JSON temporaneo
-# ---------------------------------------------------------------------------
 def quick_save(state: Dict[str, Any]) -> Path:
-    """Serializza lo stato in JSON e lo salva in un file temporaneo."""
-    directory = Path(os.path.expanduser("~")) / ".template_builder" / "history"
-    directory.mkdir(parents=True, exist_ok=True)
-    ts = int(time.time())
-    fname = directory / f"history_{ts}.json"
-    with open(fname, "w", encoding="utf-8") as fh:
-        fh.write(json.dumps(state))
-    return fname
+    """
+    Salva lo stato (serializzato in JSON) in un file temporaneo e restituisce il Path.
+    Il file creato ha estensione .json.
+    """
+    # Crea un file temporaneo con estensione .json
+    fd, path_str = tempfile.mkstemp(suffix=".json")
+    os.close(fd)
+    path = Path(path_str)
+    # Scrivi JSON
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(state, f)
+    return path
 
-
-# ---------------------------------------------------------------------------
-# load_recipe: carica un dict da file JSON
-# ---------------------------------------------------------------------------
-def load_recipe(path: Union[os.PathLike, str]) -> Dict[str, Any]:
-    """Carica da file JSON; se non valido o non ritorna dict, restituisce {}."""
+def load_recipe(path: Path) -> Dict[str, Any]:
+    """
+    Carica un file JSON da `path`; se il contenuto non è valido, ritorna {}.
+    """
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
         if isinstance(data, dict):
             return data
-        return {}
     except Exception:
-        return {}
+        pass
+    return {}
 
-
-# ---------------------------------------------------------------------------
-# Funzione di rendering semplice (fallback quando Jinja2 non è disponibile)
-# ---------------------------------------------------------------------------
-_PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*(\w+)\s*\}\}")
-
-def _simple_render(template_content: str, ctx: Dict[str, Any]) -> str:
+def _simple_render(template_str: str, ctx: Dict[str, Any]) -> str:
     """
-    Sostituisce ogni occorrenza di {{ key }} con str(ctx[key]) se esiste,
-    altrimenti lascia il placeholder invariato.
+    Sostituisce {{ key }} con str(ctx[key]) per ogni chiave in ctx.
+    Utilizza regex per gestire spazi interni.
     """
-    def _replace(match: re.Match[str]) -> str:
-        key = match.group(1)
-        if key in ctx:
-            return str(ctx[key])
-        return match.group(0)  # lascio invariato se mancante
-    return _PLACEHOLDER_PATTERN.sub(_replace, template_content)
+    result = template_str
+    for key, value in ctx.items():
+        pattern = re.compile(r"\{\{\s*" + re.escape(str(key)) + r"\s*\}\}")
+        result = pattern.sub(str(value), result)
+    return result
 
-
-# ---------------------------------------------------------------------------
-# export_html: render Jinja2 o fallback semplice
-# ---------------------------------------------------------------------------
-def export_html(ctx: Dict[str, Any], template_path: Union[str, Path], **env_kw: Any) -> str:
-    """Renderizza HTML da un template:
-    
-    - Se Jinja2 è disponibile, lo usa per il rendering completo.
-    - Altrimenti, viene usato un semplice fallback (_simple_render) che
-      sostituisce solo i placeholders {{ key }} con i valori dal contesto.
-
-    L'argomento opzionale 'save_to' in env_kw può essere passato come
-    percorso per salvare l'HTML generato su file.
+def export_html(
+    ctx: Dict[str, Any],
+    template_path: Path | str,
+    **env_kw: Any,
+) -> str:
     """
+    Renderizza HTML via Jinja2 se disponibile, altrimenti usa _simple_render.
+    - ctx: dizionario di contesto.
+    - template_path: percorso del file template.
+    - env_kw: argomenti aggiuntivi (es. save_to), ignorati nel fallback.
+    """
+    # Lettura file template
     template_path = Path(template_path)
-    # 1) Provo a usare Jinja2
     try:
-        from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
+        tpl_str = template_path.read_text(encoding="utf-8")
+    except Exception as e:
+        raise RuntimeError(f"Impossibile leggere il template: {e}")
+
+    try:
+        # Proviamo ad usare Jinja2
+        from jinja2 import Environment, FileSystemLoader, select_autoescape
         env = Environment(
             loader=FileSystemLoader(str(template_path.parent)),
             autoescape=select_autoescape(["html", "htm"]),
         )
         tpl = env.get_template(template_path.name)  # type: ignore[arg-type]
         html_str = tpl.render(**ctx)
-    except (ImportError, ModuleNotFoundError):
-        # Fallback: leggero, sostituzione placeholder
-        try:
-            content = template_path.read_text(encoding="utf-8")
-        except Exception as e:
-            raise RuntimeError(f"Impossibile leggere il template: {e}")
-        html_str = _simple_render(content, ctx)
+    except ImportError:
+        # Fallback semplice senza Jinja2
+        html_str = _simple_render(tpl_str, ctx)
 
-    # 2) Se è stato passato 'save_to', salvo anche su file
     save_to: Optional[Path] = env_kw.get("save_to")  # type: ignore[arg-type]
     if save_to:
-        try:
-            dest = Path(save_to)
-            dest.write_text(html_str, encoding="utf-8")
-        except Exception as e:
-            raise RuntimeError(f"Errore scrittura su file '{save_to}': {e}")
+        save_to_path = Path(save_to)
+        save_to_path.write_text(html_str, encoding="utf-8")
     return html_str
