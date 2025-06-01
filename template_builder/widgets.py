@@ -29,6 +29,7 @@ try:
     HAS_TOOLTIP: bool = _TOOLTIP_AVAILABLE
 except ImportError:
     _TOOLTIP_AVAILABLE = False
+    HAS_TOOLTIP: bool = False
 
 class _Tooltip:
     def __init__(self, widget: tk.Misc, text: str) -> None:
