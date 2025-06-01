@@ -1,6 +1,6 @@
 [project]
 name = "template_builder"
-version = "0.1.0"
+version = "0.0.0"
 description = "Refactor skeleton of the Template Builder GUI"
 authors = [{ name = "Your Name" }]
 requires-python = ">=3.9"
@@ -10,10 +10,13 @@ dnd        = ["tkinterdnd2>=0.3"]
 webpreview = ["tkinterweb>=3.12"]
 test       = ["pytest>=8.2"]          # rimosso pytest-tkinter
 
-
 [build-system]
 requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["template_builder", "template_builder.services", "template_builder.infrastructure"]
+packages = [
+    "template_builder",
+    "template_builder.services",
+    "template_builder.infrastructure"
+]

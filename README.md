@@ -1,56 +1,31 @@
-Ecco il **README.md** completo da copiare **tutto insieme** e incollare nel file `README.md` alla root del tuo progetto (sovrascrivi l’esistente):
+# Template Builder
 
-````markdown
-# Template Builder 🖌️
+Template Builder è un tool modulare per generare documenti HTML a partire da template Jinja2 e da un contesto JSON.  
+Il progetto è stato completamente rifattorizzato in moduli indipendenti (core, widget, servizi testo, servizi immagini, infrastruttura, CLI) e coperto da una suite completa di test.
 
-Toolkit GUI per creare rapidamente template HTML/marketing con  
-**preview live**, validazione immediata e gestione undo/redo.
+## Struttura del progetto
 
-## Feature principali (≥ v0.1.0)
+- **template_builder/**  
+  - `__main__.py` : entrypoint CLI (`python -m template_builder`)  
+  - `assets.py`    : costanti (regex placeholder, colori, colonne di default)  
+  - `builder_core.py`: controller principale (stato, undo/redo, audit placeholder)  
+  - `filters.py`   : filtri Jinja2 stub  
+  - `model.py`     : dataclass di dominio (Hero, StepImage, GalleryRow)  
+  - **infrastructure/**  
+    - `ui_utils.py`        : helper per dialog/info sullo stdout  
+    - `preview_engine.py`  : stub per motore di anteprima HTML  
+  - **services/**  
+    - `text.py`    : estrazione e formattazione testo (smart_paste, auto_format, images_to_html…)  
+    - `images.py`  : gestione placeholder, griglie HTML, data URI, validazione URL, metadata immagine  
+    - `storage.py` : persistenza (undo/redo), `export_html` (fallback _simple_render o Jinja2)  
+  - **widgets.py** : widget Tkinter (PlaceholderEntry, Spinbox, TextField, SortableImageRepeater)  
 
-| Funzione                        | Extra req. | Fallback                         |
-|---------------------------------|------------|----------------------------------|
-| **PreviewEngine** – anteprima HTML in-app   | `tkinterweb`    | scrolled-text readonly          |
-| **Undo/Redo UI** (Ctrl/Cmd Z / Y)           | —                | —                                |
-| **Drag & Drop immagini** in qualsiasi campo URL | `tkinterdnd2` + `tkdnd` | pulsante “+ Add”       |
-| **Validazione live** – bordo rosso/verde    | —                | disattivata se Tk vecchio        |
-| **Tooltip contestuali** on-hover             | —                | ignorati in ambiente head-less   |
+- **tests/**  
+  Contiene tutti i test unitari e di integrazione: service text, service images, service storage, test widget, test core, test CLI, test infrastruttura, test assets, test filters, test model.
 
-## Installazione
+## Come installare
 
-```bash
-# core (Tkinter nativo)
-pip install template_builder
-
-# + Drag&Drop e WebPreview
-pip install "template_builder[dnd,webpreview]"
-````
-
-## Quick start
-
-```python
-from template_builder.builder_core import TemplateBuilderApp
-
-app = TemplateBuilderApp()   # si adatta se non c’è display (CI)
-if app.root:                 # run solo in modalità GUI
-    app.root.mainloop()
-```
-
-![screenshot](docs/img/overview.png)
-
-## Contribuire
-
-1. Fork → branch feature → PR
-2. `pytest -q` deve restare verde
-3. Per funzionalità opzionali, aggiungere i flag `EXTRA_REQ` in `pyproject.toml`
-
-````
-
-1. Salva questo contenuto **in un unico blocco** nel file `README.md` alla root.  
-2. Poi esegui:
-
+1. Clona il repository:
    ```bash
-   git add README.md
-   git commit -m "docs: update README with Quick start"
-   git push
-````
+   git clone git@github.com:polsi05/template_builder.git
+   cd template_builder

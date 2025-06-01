@@ -1,17 +1,17 @@
 import pytest
-import tkinter
 from template_builder.builder_core import TemplateBuilderApp
 
 def test_audit_placeholders_logic(monkeypatch, tmp_path):
-    # Setup app headless
+    # Setup applicazione in modalità head-less (no GUI)
     app = TemplateBuilderApp(enable_gui=False)
-    # Simula template_src con due segnaposto
+    # Simula un template HTML con due segnaposto attesi
     html = "<p>{{ ONE }}</p>{{ TWO_SRC }}{{ TWO_ALT }}"
     app.template_src = html
-    # Stato mancante ONE e TWO_ALT, extra THREE
+    # Stato attuale: manca ONE e TWO_ALT, presente un extra THREE, e TWO_SRC fornito
     app._state = {"THREE": "x", "TWO_SRC": "url"}
     lines = app.audit_placeholders()
+    # Verifica risultati: ONE e TWO_ALT segnalati mancanti, TWO_SRC presente, THREE ignorato
     assert "❌ ONE" in lines
     assert "✅ TWO_SRC" in lines
     assert "✅ TWO_ALT" in lines
-    assert "❌ THREE" not in lines  # non fa parte di placeholders estratti
+    assert "❌ THREE" not in lines  # "THREE" non fa parte dei segnaposto definiti nel template
