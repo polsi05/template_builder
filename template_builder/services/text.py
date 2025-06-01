@@ -122,6 +122,7 @@ def images_to_html(rows: int, cols: int) -> str:
 # ---------------------------------------------------------------------------
 # get_field_help (case-insensitive lookup)
 # ---------------------------------------------------------------------------
+
 _FIELD_HELP: dict[str, str] = {
     "title": "Titolo del prodotto (massimo 60 caratteri)",
     "description": "Descrizione lunga (vale 500 caratteri max), supporta invio a capo.",
