@@ -3,6 +3,9 @@ Template Builder – package initializer.
 Espone la classe `TemplateBuilderApp` (import lazy) e la funzione `main()`.
 """
 from importlib import import_module
+#   in __init__.py
+from .step_image import sort_steps, swap_steps, renumber_steps  # noqa: F401
+from template_builder.services.storage import *  # noqa
 
 def _lazy():
     core = import_module(".builder_core", __package__)
