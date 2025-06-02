@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{META_TITLE}}</title>
+
+<style>
+:root{
+  --brand:#0085cd;
+  --brand-dark:#0068a7;
+  --text:#333;
+  --gap-sm:8px;
+  --gap-lg:24px;
+  --radius:4px;
+  --max-width:960px;
+}
+
+/* Reset minimo eBay-safe */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:var(--text)}
+a{color:var(--brand);text-decoration:none}
+a:hover{color:var(--brand-dark);text-decoration:underline}
+
+/* Header */
+.header{background:var(--brand);color:#fff;padding:8px 0}
+.header .inner{max-width:var(--max-width);margin:auto;display:flex;align-items:center;gap:12px;padding:0 var(--gap-sm)}
+.header img{height:48px;width:auto;border-radius:var(--radius)}
+.header .info{font-size:14px}
+
+/* Wrapper */
+.wrap{max-width:var(--max-width);margin:auto;padding:var(--gap-sm)}
+@media(max-width:480px){body{font-size:16px}}
+
+/* Hero */
+.hero{display:flex;gap:16px;align-items:flex-start;margin-top:var(--gap-lg)}
+.hero img{flex:0 0 30%;max-width:30%;border-radius:var(--radius)}
+@media(max-width:600px){.hero{flex-direction:column}.hero img{max-width:100%}}
+
+/* Characteristics */
+.char h3{font-size:18px;color:var(--brand);margin-bottom:var(--gap-sm)}
+.char ul{margin-left:18px}
+.char li{margin-bottom:6px}
+
+/* Description */
+.desc h2{font-size:18px;color:var(--brand);margin:var(--gap-lg) 0 var(--gap-sm)}
+
+/* Gallerie (descrizione & ricetta) */
+.gallery,
+.recipe-gallery{font-size:0;text-align:center;margin-top:var(--gap-lg)}
+.gallery img,
+.recipe-gallery img{display:inline-block;width:32%;margin:0 1% var(--gap-sm);border-radius:var(--radius)}
+@media(max-width:600px){
+  .gallery img,
+  .recipe-gallery img{width:48%;margin:0 1% var(--gap-sm)}
+}
+@media(max-width:380px){
+  .gallery img,
+  .recipe-gallery img{width:100%;margin:0 0 var(--gap-sm)}
+}
+
+/* Tabs NAV */
+.tabs{margin-top:var(--gap-lg)}
+.tabs label{display:inline-block;min-width:150px;padding:10px 14px;border:1px solid #ccc;border-bottom:none;background:#f7f7f7;cursor:pointer;color:var(--brand-dark);text-align:center}
+.tabs input{display:none}
+.tabs input:checked + label{background:#fff;font-weight:700;border-bottom:1px solid #fff}
+.tabs .panel{border:1px solid #ccc;padding:var(--gap-sm);display:none}
+#tabone:checked~.panel-one,
+#tabtwo:checked~.panel-two,
+#tabthree:checked~.panel-three,
+#tabfour:checked~.panel-four,
+#tabfive:checked~.panel-five{display:block}
+
+/* Recipe steps */
+.steps{display:block;margin-top:var(--gap-sm)}
+.step{margin-bottom:var(--gap-sm)}
+.step img{width:100%;border-radius:var(--radius);margin-bottom:6px}
+@media(min-width:600px){
+  .steps{columns:2 280px;column-gap:16px}
+  .step{break-inside:avoid}
+}
+
+/* Footer */
+.footer{margin-top:var(--gap-lg);font-size:12px;color:#666;text-align:center}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="inner">
+    <img src="https://cdn.shopify.com/s/files/1/0562/0003/6546/files/Logo_definitivo_IG_Gusti_copia_180x.jpg" alt="logo GUSTIDAPRILE.IT" loading="lazy">
+    <div class="info">A vostra disposizione per qualsiasi dubbio o informazione. CONTATTATECI</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h1>{{ TITOLO_PRODOTTO }}</h1>
+
+  <!-- HERO -->
+  <section class="hero">
+    <img src="{{HERO_IMAGE_SRC}}" alt="{{HERO_IMAGE_ALT}}" loading="lazy">
+    <!-- caratteristiche -->
+    <!-- placeholder: {{CHARACTERISTICS_HTML}} -->
+    {% if CHARACTERISTICS_HTML %}
+      <div class="char">{{ CHARACTERISTICS_HTML | safe }}</div>
+    {% endif %}
+  </section>
+
+
+  <!-- descrizione -->
+  <section class="desc">
+    <h2>Descrizione</h2>
+    <!-- placeholder: {{DESCRIPTION_HTML}} -->
+    {% if DESCRIPTION_HTML %}
+    <div class="desc">{{ DESCRIPTION_HTML | safe }}</div>
+    {% endif %}
+  </section>
+
+  <!-- GALLERIA DESCRIZIONE -->
+  <section class="gallery">
+    {% set col = (100 - (COLS_DESC - 1)*2) / COLS_DESC %}
+    {% for src,alt in IMAGES_DESC %}
+      <img src="{{ src }}" alt="{{ alt }}" style="width:{{ '%0.2f' % col }}%;" loading="lazy">
+    {% endfor %}
+  </section>
+
+  <!-- TABS -->
+  <section class="tabs">
+    <input type="radio" id="tabone"  name="tabs" checked><label for="tabone">RICETTA GUSTOSA</label>
+    <input type="radio" id="tabtwo"  name="tabs"><label for="tabtwo">COME LO CONSERVO?</label>
+    <input type="radio" id="tabthree"name="tabs"><label for="tabthree">TAB. NUTRIZIONALE</label>
+    <input type="radio" id="tabfour" name="tabs"><label for="tabfour">PAGAMENTI &amp; RECESSO</label>
+    <input type="radio" id="tabfive" name="tabs"><label for="tabfive">SPEDIZIONE</label>
+
+    <!-- PANEL 1 – Ricetta -->
+    <div class="panel panel-one">
+      <section class="recipe" itemscope itemtype="https://schema.org/Recipe">
+        <header>
+          <h3 itemprop="name">{{RECIPE_TITLE}}</h3>
+          <p class="subtitle" itemprop="description">{{RECIPE_INTRO}}</p>
+        </header>
+
+        <!-- foto piatto finito -->
+        <div class="recipe-gallery">
+          {% set col = (100 - (COLS_REC - 1)*2) / COLS_REC %}
+          {% for src,alt in IMAGES_REC %}
+            <img src="{{ src }}" alt="{{ alt }}" style="width:{{ '%0.2f' % col }}%;" loading="lazy" itemprop="image">
+          {% endfor %}
+        </div>
+
+        <!-- Step testo+foto -->
+        {% set steps = RECIPE_STEPS_TEXT | steps_bind %}
+        <!-- {{RECIPE_STEPS_TEXT}} -->
+        <div class="steps">
+          {% for s in steps %}
+            <div class="step">
+              {% if s.img %}<img src="{{ s.img }}" alt="{{ s.alt }}" loading="lazy">{% endif %}
+              <p itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
+                <span itemprop="text">{{ s.text }}</span>
+              </p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <footer class="meta gap-sm">
+          <strong>Pronto in:</strong>
+          <time itemprop="cookTime" datetime="PT{{COOK_MINUTES}}M">{{COOK_MINUTES}} min</time>
+        </footer>
+      </section>
+    </div>
+
+    <!-- PANEL 2 – Conservazione -->
+    <div class="panel panel-two">{{TABTWO_CONTENT}}</div>
+
+    <!-- PANEL 3 – Nutrizione -->
+    <div class="panel panel-three">{{NUTRITION}}</div>
+
+    <!-- PANEL 4 – Pagamenti & Recesso -->
+    <div class="panel panel-four">{{TABFOUR_CONTENT}}</div>
+
+    <!-- PANEL 5 – Spedizione -->
+    <div class="panel panel-five">{{TABFIVE_CONTENT}}</div>
+  </section>
+
+  <div class="footer">
+    GUSTI D'APRILE – Vendita al dettaglio prodotti tipici Siciliani, Modica (Sicilia).<br>
+    Frutta Disidrata, Frutta Secca in Guscio e Sgusciata, Semi oleosi, Legumi, Conserve, Miele, Pomodoro, Olive, Olio EVO, Spezie.
+  </div>
+
+</div>
+</body>
+</html>

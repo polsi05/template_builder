@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!-- eBay listing template – modernised, dynamic, full -->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{META_TITLE}}</title>
+
+<style>
+:root{
+  --brand:#0085cd;
+  --brand-dark:#0068a7;
+  --text:#333;
+  --gap-sm:8px;
+  --gap-lg:24px;
+  --radius:4px;
+  --max-width:960px;
+}
+
+/* Base reset */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;font-size:14px;color:var(--text);line-height:1.5}
+a{color:var(--brand);text-decoration:none}
+a:hover{color:var(--brand-dark);text-decoration:underline}
+
+/* Header bar */
+.header{background:var(--brand);color:#fff;padding:8px 0}
+.header .inner{max-width:var(--max-width);margin:auto;display:flex;align-items:center;gap:12px;padding:0 var(--gap-sm)}
+.header img{height:48px;width:auto;border-radius:var(--radius)}
+.header .info{font-size:14px}
+
+/* Wrapper */
+.wrap{max-width:var(--max-width);margin:auto;padding:var(--gap-sm)}
+@media(max-width:480px){body{font-size:16px}}
+
+/* Spacing helpers */
+.gap-sm{margin-top:var(--gap-sm)}
+.gap-lg{margin-top:var(--gap-lg)}
+
+/* Hero */
+.hero{display:flex;gap:16px;align-items:flex-start;margin-top:var(--gap-lg)}
+.hero img{flex:0 0 30%;max-width:30%;border-radius:var(--radius)}
+@media(max-width:600px){.hero{flex-direction:column}.hero img{max-width:100%}}
+
+/* Characteristics */
+.char h3{font-size:18px;color:var(--brand);margin-bottom:var(--gap-sm)}
+.char ul{margin-left:18px}
+.char li{margin-bottom:6px}
+
+/* Description */
+.desc h2{font-size:18px;color:var(--brand);margin:var(--gap-lg) 0 var(--gap-sm)}
+
+/* Dynamic gallery */
+.gallery{display:flex;flex-wrap:wrap;gap:2%;justify-content:center;margin-top:var(--gap-lg)}
+.gallery img{border-radius:var(--radius);margin-bottom:var(--gap-sm)}
+
+/* Tabs */
+.tabs input{display:none}
+.tabs label{padding:10px 16px;border:1px solid #ccc;border-bottom:none;cursor:pointer;background:#f7f7f7;color:var(--brand-dark)}
+.tabs label:hover{background:#eaf5fb}
+.tabs .panel{border:1px solid #ccc;padding:var(--gap-sm);display:none}
+.tabs input:checked + label{background:#fff;font-weight:700;border-bottom:1px solid #fff}
+#tabone:checked ~ .panel-one,
+#tabtwo:checked ~ .panel-two,
+#tabthree:checked ~ .panel-three,
+#tabfour:checked ~ .panel-four,
+#tabfive:checked ~ .panel-five{display:block}
+
+/* Recipe */
+.recipe header{text-align:center;margin-bottom:var(--gap-sm)}
+.recipe .subtitle{font-size:15px;margin-top:var(--gap-sm)}
+.recipe-gallery{display:flex;flex-wrap:wrap;gap:2%;justify-content:center;margin-bottom:var(--gap-sm)}
+.recipe-gallery img{border-radius:var(--radius)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.step img{width:100%;border-radius:var(--radius);margin-bottom:6px}
+.step p{margin:0 0 10px 0;font-size:14px}
+@media(max-width:600px){.step img{width:100%}}
+.ingredients ul{columns:2 auto;padding-left:18px}
+@media(max-width:600px){.ingredients ul{columns:1}}
+.meta{font-size:14px;margin-top:var(--gap-sm)}
+
+/* Footer */
+.footer{margin-top:var(--gap-lg);font-size:12px;color:#666;text-align:center}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="inner">
+    <img src="https://cdn.shopify.com/s/files/1/0562/0003/6546/files/Logo_definitivo_IG_Gusti_copia_180x.jpg" alt="logo GUSTIDAPRILE.IT" loading="lazy">
+    <div class="info">A vostra disposizione per qualsiasi dubbio o informazione. CONTATTATECI</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h1>{{PRODUCT_TITLE}}</h1>
+
+  <!-- HERO -->
+  <section class="hero">
+    <img src="{{HERO_IMAGE_SRC}}" alt="{{HERO_IMAGE_ALT}}" loading="lazy">
+    <div class="char">
+      <h3>Caratteristiche</h3>
+      <ul>
+        {{CHARACTERISTICS_LIST}}
+      </ul>
+    </div>
+  </section>
+
+  <!-- DESCRIPTION -->
+  <section class="desc">
+    <h2>Descrizione</h2>
+    {{DESCRIPTION_HTML}}
+  </section>
+
+  <!-- PRODUCT GALLERY with dynamic columns -->
+  <section class="gallery">
+    {% set col = 100 / COLS_DESC %}
+    {% for src, alt in IMAGES_DESC %}
+      <img src="{{ src }}" alt="{{ alt }}" width="{{ col }}%;" loading="lazy">
+    {% endfor %}
+  </section>
+
+  <!-- TABS -->
+  <section class="tabs gap-lg">
+    <input type="radio" name="tabs" id="tabone" checked><label for="tabone">RICETTA GUSTOSA</label>
+    <input type="radio" name="tabs" id="tabtwo"><label for="tabtwo">COME LO CONSERVO?</label>
+    <input type="radio" name="tabs" id="tabthree"><label for="tabthree">TAB. NUTRIZIONALE</label>
+    <input type="radio" name="tabs" id="tabfour"><label for="tabfour">PAGAMENTI & RECESSO</label>
+    <input type="radio" name="tabs" id="tabfive"><label for="tabfive">SPEDIZIONE</label>
+
+    <!-- Panel 1: Ricetta -->
+    <div class="panel panel-one">
+      <section class="recipe gap-sm" itemscope itemtype="https://schema.org/Recipe">
+        <header>
+          <h3 itemprop="name">{{RECIPE_TITLE}}</h3>
+          <p class="subtitle" itemprop="description">{{RECIPE_INTRO}}</p>
+        </header>
+
+        {% if IMAGES_REC %}
+        <div class="recipe-gallery">
+          {% set col = 100 / COLS_REC %}
+          {% for src, alt in IMAGES_REC %}
+            <img src="{{ src }}" alt="{{ alt }}" width="{{ col }}%;" loading="lazy" itemprop="image">
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% set steps = RECIPE_STEPS_TEXT | steps_bind %}
+        <!-- {{RECIPE_STEPS_TEXT}} -->
+
+        <div class="steps">
+          {% for s in steps %}
+            <article class="step">
+              {% if s.img %}
+                <img src="{{ s.img }}" alt="{{ s.alt }}" itemprop="image" loading="lazy">
+              {% endif %}
+              <p itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
+                <span itemprop="text">{{ s.text }}</span>
+              </p>
+            </article>
+          {% endfor %}
+        </div>
+
+        <aside class="ingredients gap-sm">
+          <h4>Ingredienti</h4>
+          <ul>
+            {% for ing in INGREDIENTI %}
+              <li itemprop="recipeIngredient">{{ ing }}</li>
+            {% endfor %}
+          </ul>
+        </aside>
+
+        <footer class="meta">
+          <strong>Pronto in:</strong>
+          <time itemprop="cookTime" datetime="PT{{COOK_MINUTES}}M">{{COOK_MINUTES}} min</time>
+        </footer>
+      </section>
+    </div>
+
+    <!-- Panel 2 -->
+    <div class="panel panel-two">{{TABTWO_CONTENT}}</div>
+
+    <!-- Panel 3 -->
+    <div class="panel panel-three">
+      <h4>Tabella nutrizionale</h4>
+      {{NUTRITION_TABLE}}
+    </div>
+
+    <!-- Panel 4 -->
+    <div class="panel panel-four">
+      <h4>Metodi di pagamento accettati</h4>
+      <ul>
+        <li><strong>PayPal</strong> – immediato e protetto.</li>
+        <li><strong>Carta di credito / debito</strong> (Visa, MasterCard, Amex) – transazione sicura via circuito PayPal anche senza account.</li>
+      </ul>
+      <h4 class="gap-sm">Diritto di recesso</h4>
+      <p>Il cliente può esercitare il <strong>recesso entro 30 giorni</strong> dal ricevimento della merce. Il prodotto deve essere integro e completo di confezione originale. Le spese di spedizione per il reso sono a carico dell’acquirente. Rimborso entro 48 ore dal rientro.</p>
+      <h4 class="gap-sm">Fatturazione</h4>
+      <p>Per fattura indica Partita IVA / CF nelle note ordine o via messaggio subito dopo l’acquisto.</p>
+    </div>
+
+    <!-- Panel 5 -->
+    <div class="panel panel-five">
+      <h4>Corrieri &amp; tempi di consegna</h4>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f7f7f7">
+            <th style="text-align:left;padding:6px;border:1px solid #ccc">Servizio</th>
+            <th style="text-align:left;padding:6px;border:1px solid #ccc">Tempi*</th>
+            <th style="text-align:left;padding:6px;border:1px solid #ccc">Costo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:6px;border:1px solid #ccc">Corriere Espresso – SDA / POSTE ITALIANE / BRT / DHL</td>
+            <td style="padding:6px;border:1px solid #ccc">24‑48 h (penisola)<br>48‑72 h (Isole)</td>
+          </tr>
+          <tr>
+            <td style="padding:6px;border:1px solid #ccc">Ritiro in sede (Modica)</td>
+            <td style="padding:6px;border:1px solid #ccc">Immediato</td>
+            <td style="padding:6px;border:1px solid #ccc">Gratis</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="gap-sm" style="font-size:12px">*Tempi medi non vincolanti. Spedizioni tracciate; tracking inviato via email.</p>
+      <h4 class="gap-sm">Imballo sostenibile</h4>
+      <p>Usiamo cartone riciclato e materiale di riempimento riutilizzato per ridurre l’impatto ambientale.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    GUSTI D'APRILE – Vendita al dettaglio prodotti tipici Siciliani, Modica (Sicilia).<br>
+    Frutta Disidrata, Frutta Secca in Guscio e Sgusciata, Semi oleosi, Legumi, Conserve, Miele, Pomodoro, Olive, Olio EVO, Spezie.
+  </div>
+
+</div>
+</body>
+</html>
