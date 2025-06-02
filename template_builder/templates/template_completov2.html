@@ -1,0 +1,245 @@
+
+<!-- Codice GUSTI D?APRILE -->
+<meta charset="utf-8"/>
+<title>{{META_TITLE}}</title>
+<meta content="width=device-width" name="viewport"/>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+<!-- STILE E IMPAGINAZIONE -->
+<style>
+* { margin:0; padding:0;}
+/* Quello che segue definisce il FONT da utilizzare di default nel template */
+* { font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; line-height:2; font-size: 14px;}
+img { max-width: 100%; padding: 10px 0; }
+.collapse { margin:0; padding:0;}
+body { -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:none; width:100%!important; height:100%; }
+a { color: #2BA6CB;}
+table.head-wrap { width: 100%;}
+.header.container table td.logo { padding: 15px; }
+.header.container table td.label { padding: 15px; padding-left:0px; }
+table.body-wrap { width: 100%; }
+table.footer-wrap { width: 100%; clear:both!important; }
+h1,h2,h3,h4,h5,h6 {line-height: 1.1; font-weight:400; }
+h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {font-size: 60%; line-height: 0; text-transform: none; }
+/* Quello che segue è lo stile del: TITOLO DELL'OGGETTO */
+h1 {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; color: #0085cd; font-size: 27px; line-height: 35px;}
+/* Quello che segue è lo stile del: DESCRIZIONE DISCORSIVA */
+h2 {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; color: #000000; font-size: 18px; margin: 20px 0 9px 0;}
+/* Quello che segue è lo stile del: CARATTERISTICHE - PAGAMENTI - SPEDIZIONI - DIRITTO DI RECESSO */
+h3 {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; color: #0085cd; font-size: 27px; line-height: 35px; margin: 30px 0 10px 0;}
+/* Quello che segue è lo stile del: CONDIZIONI GENERALI, Sottotitoli */
+h4 {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; color: #000000; font-size: 18px;}
+/* Quello che segue è lo stile del: inutilizzato */
+h5 {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; color: #05214B; font-size: 16px;}
+/* Quello che segue è lo stile del: PER INFORMAZIONI, VOCE E WHATSAPP */
+h6 {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; color: #2F9000; font-size: 14px; text-transform: uppercase;}
+/* Quello che segue è lo stile del: ELENCO PUNTATO */
+p, ul {font-family:'Gill Sans', 'Myriad Pro', 'Helvetica', 'Arial', sans-serif; margin-bottom: 10px; font-weight: normal; font-size:14px; line-height:2;}
+ul li {margin-left:5px; list-style-position: inside; }
+.container {display:block!important;max-width:1430px!important;margin:0 auto!important;clear:both!important;}
+.content {padding:15px; max-width:1430px;margin:0 auto;display:block;}
+.content table { width: 100%; }
+		/* Quello che segue è lo stile delle TAB */
+		.tabs {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.tabs label {
+  -webkit-box-ordinal-group: 2;
+  -webkit-order: 1;
+  -ms-flex-order: 1;
+  order: 1;
+  display: block;
+  padding: 0.5rem 2rem;
+  margin-right: 0.2rem;
+  cursor: pointer;
+  background: #fafafa;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	border-top: 1px solid #ddd;
+	font-size: 18px;
+  -webkit-transition: background ease 0.2s;
+  transition: background ease 0.2s;
+}
+
+.tabs .tab {
+  -webkit-box-ordinal-group: 100;
+  -webkit-order: 99;
+  -ms-flex-order: 99;
+  order: 99;
+  -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
+  width: 100%;
+  display: none;
+  padding: 1rem;
+  background: #fafafa;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	
+}
+
+.tabs input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+
+}
+
+.tabs input[type="radio"]:checked + label { background: #ddd; border: 1px solid #ddd; /*tab selezionata*/
+  border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	border-top: 2px solid #0085cd;
+	border-bottom: 1px solid #ddd;
+	}
+
+.tabs input[type="radio"]:checked + label + .tab { display: block; }
+ @media (max-width: 45em) {
+
+.tabs .tab,  .tabs label {
+  -webkit-box-ordinal-group: NaN;
+  -webkit-order: initial;
+  -ms-flex-order: initial;
+  order: initial;
+}
+
+.tabs label {
+  width: 100%;
+  margin-right: 0;
+  margin-top: 0.2rem;
+}
+}
+@media only screen and (max-width: 800px) { img.small {width: 100%}}
+
+/* --- Ricetta Gustosa restyling --- */
+.recipe-block h3 {font-size:22px;margin:10px 0;color:#0085cd;}
+.recipe-gallery img {width:49%;margin:0 0 1%;vertical-align:top;}
+@media(max-width:600px){ .recipe-gallery img{width:100%;} }
+.step-img {width:49%;margin:8px 0;vertical-align:top;}
+@media(max-width:600px){ .step-img{width:100%;} }
+.recipe-steps li{margin:0 0 10px 18px;}
+.recipe-ingredients li{margin:0 0 6px 18px;list-style:disc;}
+
+</style>
+<!-- INIZIO PAGINA -->
+<table class="head-wrap">
+<tbody><tr>
+<td align="" class="header container">
+<div class="content">
+<table>
+<tbody><tr>
+<td><img alt="logo GUSTIDAPRILEIT" src="https://cdn.shopify.com/s/files/1/0562/0003/6546/files/Logo_definitivo_IG_Gusti_copia_180x.jpg?v=1618548760"/></td>
+<td align="right"><h6 class="collapse">A vostra disposizione per qualsiasi dubbio o informazione. CONTATTATECI</h6></td>
+</tr>
+</tbody></table>
+</div>
+</td>
+</tr>
+</tbody></table>
+<!-- INIZIO DESCRIZIONE OGGETTO -->
+<H0%">
+<tbody><tr><td class="container">
+<div class="content">
+<table style="padding: 10px; border:1px solid #DBDBDB; border-bottom:6px solid #0085cd;">
+<tbody><tr>
+<td><h1>{{PRODUCT_TITLE}}</h1>
+<img alt="{{HERO_IMAGE_ALT}}" class="small" src="{{HERO_IMAGE_SRC}}" style="vertical-align: top; padding-right:20px; float:left;" width="30%"/>
+<h3> Caratteristiche</h3>
+<ul>{{CHARACTERISTICS_LIST}}</ul>
+<div typeof="Product" vocab="https://schema.org/">
+<span property="description">{{DESCRIPTION_HTML}}</span></div>
+</td></tr>
+<tr style="text-align:center;">
+  <td>
+    {% set col = 100 / COLS_DESC %}
+    {% for src,alt in IMAGES_DESC %}
+      <img src="{{ src }}" alt="{{ alt }}" width="{{ col }}%">
+    {% endfor %}
+  </td>
+</tr>
+<tr><td>
+<div class="tabs">
+<input checked="checked" id="tabone" name="tabs" type="radio"/>
+<label for="tabone">RICETTA GUSTOSA </label>
+<div class="tab"><!-- ★★★ INIZIO BLOCCO RICETTA GUSTOSA ★★★ -->
+<div class="recipe-block" itemscope itemtype="https://schema.org/Recipe">
+  <h3 itemprop="name">{{RECIPE_NAME}}</h3>
+  <p itemprop="description">{{RECIPE_INTRO_TEXT}}</p>
+
+  <!-- Gallery immagini ricetta -->
+  <div class="recipe-gallery">
+    {% set col = 100 / COLS_REC %}
+    {% for src,alt in IMAGES_REC %}
+      <img src="{{ src }}" alt="{{ alt }}" width="{{ col }}%" itemprop="image">
+    {% endfor %}
+  </div>
+
+  <!-- Ingredienti -->
+  <h4>Ingredienti</h4>
+  <ul class="recipe-ingredients">
+    {% for ing in INGREDIENTI %}
+      <li itemprop="recipeIngredient">{{ ing }}</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Istruzioni -->
+  <h4>Preparazione</h4>
+  <ol class="recipe-steps">
+    {% for s in RECIPE_STEPS %}
+      {% if s[1] %}
+        <img src="{{ s[1] }}" alt="{{ s[2] }}" class="step-img" itemprop="image">
+      {% endif %}
+      <li itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
+        <span itemprop="text">{{ s[0] }}</span>
+      </li>
+    {% endfor %}
+  </ol>
+
+  <p><strong>Tempo di cottura:</strong>
+     <time itemprop="cookTime" datetime="PT{{COOK_MINUTES}}M">{{COOK_MINUTES}} min</time>
+  </p>
+</div>
+
+<!-- ★★★ FINE BLOCCO RICETTA GUSTOSA ★★★ -->
+</div>
+<input id="tabtwo" name="tabs" type="radio"/>
+<label for="tabtwo">COME LO CONSERVO?</label>
+<div class="tab">{{TABTWO_CONTENT}}</div>
+<input id="tabthree" name="tabs" type="radio"/>
+<label for="tabthree">PAGAMENTI</label>
+<div class="tab">
+<p></p><h4>Accettiamo PayPal e Bonifico Bancario</h4><br/>
+      Il pagamento deve essere effettuato entro 5 giorni dall'acquisto, trascorsi i quali verrà aperta una Controversia per oggetto non pagato e l'utente verrà segnalato a eBay come acquirente non pagante. <p></p>
+</div>
+<input id="tabfour" name="tabs" type="radio"/>
+<label for="tabfour">SPEDIZIONI</label>
+<div class="tab">
+<p></p><h4>Offriamo diverse soluzioni di spedizione: Spedizione Standard 3-5 Giorni, Pacco Celere 3, Pacco Celere 1, Dhl.</h4><br/>
+     Spedizione Standard 3-5 giorni è il miglior compromesso per ricevere i propri acquisti piuttosto celermente mantenendo comunque un prezzo per la spedizione che sia accettabile (ha un codice che ne prova la consegna).<br/>la soluzione Corriere Espresso(Pacco Celere 1 e Dhl) garantisce la consegna in 24/48 ore; celere, sicuro ed affidabile.<br/>
+<strong>Con una spesa minima di ?79 le spese di spedizione tramite Corriere Espresso sono GRATIS.</strong><p></p>
+</div>
+<input id="tabfive" name="tabs" type="radio"/>
+<label for="tabfive">RECESSO</label>
+<div class="tab">
+<p></p><h4>Diritto di recesso</h4><br/>
+ L'acquirente potrà esercitare il diritto di recesso entro i termini stabiliti da Ebay dalla ricezione del proprio acquisto, come indicato dalla normativa Europea 2011/83/UE in merito ai contratti a distanza fuori dai locali commerciali. La normativa prevede che per esercitare il diritto di recesso l'utente dia preventiva comunicazione al venditore, e restituisca la merce integra, nel suo imballo originale (dove presente). Le spese di spedizione sono a carico dell'acquirente. Il rimborso sarà effettuato dopo la verifica dell'integrità del materiale.<p></p>
+</div>
+</div>
+</td></tr>
+</tbody></table>
+<table align="center" border="0" cellpadding="1" cellspacing="1" width="50%">
+<tbody>
+<tr>
+<td align="center"><h5><b style="color: rgb(5, 33, 75);">GUSTI D'APRILE</b></h5><div><h5><b>Vendita al dettaglio prodotti tipici Siciliani- MODICA(Sicilia) </b></h5>
+<h5><b>Frutta Disidrata- Frutta Secca in Guscio e Sgusciata Tostata e Non- Semi oleosi- Legumi- Conserve- Miele- Pomodoro- Olive- Olio Extra Vergine di Oliva- Spezie</b></h5></div></td>
+</tr>
+</tbody>
+</table>
+</div></td></tr></tbody></table>

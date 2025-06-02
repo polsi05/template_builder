@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{PAGE_TITLE}}</title>
+  <meta name="description" content="{{META_DESC}}">
+</head>
+<body>
+  <header>
+    <h1>{{PRODUCT_NAME}}</h1>
+    <p class="sku">SKU: {{SKU}}</p>
+    <p class="price">€ {{PRODUCT_PRICE}}</p>
+    <img src="{{PRODUCT_IMAGE_SRC}}" alt="{{PRODUCT_IMAGE_ALT}}">
+    <p>{{PRODUCT_DESCRIPTION}}</p>
+    <ul class="features">
+      <li>{{FEATURE1}}</li>
+      <li>{{FEATURE2}}</li>
+      <li>{{FEATURE3}}</li>
+    </ul>
+  </header>
+
+  <section class="gallery">
+    <h2>Gallery</h2>
+    <img src="{{GALLERY_IMG1_SRC}}" alt="{{GALLERY_IMG1_ALT}}">
+    <img src="{{GALLERY_IMG2_SRC}}" alt="{{GALLERY_IMG2_ALT}}">
+    <img src="{{GALLERY_IMG3_SRC}}" alt="{{GALLERY_IMG3_ALT}}">
+  </section>
+
+  <section class="recipe">
+    <h2>{{RECIPE_TITLE}}</h2>
+    <p>Tempo di preparazione: {{RECIPE_TIME}}</p>
+    <h3>Ingredienti</h3>
+    <ul class="ingredients">
+      <li>{{INGREDIENT1}}</li>
+      <li>{{INGREDIENT2}}</li>
+      <li>{{INGREDIENT3}}</li>
+    </ul>
+    <h3>Preparazione</h3>
+    <ol class="steps">
+      <li>{{STEP1}}</li>
+      <li>{{STEP2}}</li>
+      <li>{{STEP3}}</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>© {{YEAR}}</p>
+  </footer>
+</body>
+</html>
