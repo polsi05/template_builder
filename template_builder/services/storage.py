@@ -12,7 +12,7 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # ---------------------------------------------------------------------------
 # Tentativo opzionale di import Jinja2
@@ -35,7 +35,8 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 _BASE_DIR = Path.home() / ".template_builder"
-_HISTORY_DIR = _BASE_DIR / "history"
+SCHEMA_VERSION = 2                # ← nuovo
+_HISTORY_DIR   = _BASE_DIR / "history"
 _HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
@@ -75,20 +76,46 @@ def _timestamp() -> str:
     return time.strftime("%Y%m%d-%H%M%S")
 
 
+def _migrate_v1_to_v2(old: Dict[str, Any]) -> Dict[str, Any]:
+    """Porta un JSON v1 al nuovo schema v2 (aggiunge STEPS e ALT)."""
+    from template_builder.step_image import bind_steps
+    texts  = [old.get(f"STEP{i}", "") for i in range(1, 10)]
+    images = old.get("IMAGES_STEP", [])
+    steps  = bind_steps(texts, images)
+    old["STEPS"] = [s.to_dict() for s in steps]
+    for s in steps:
+        old[f"STEP{s.order}_IMG_ALT"] = s.alt
+    old["__migrated_from_v1"] = True
+    return old
+
+
 def load_recipe(path: os.PathLike | str) -> Dict[str, Any]:
     path = Path(path)
     with path.open("r", encoding="utf-8") as fh:
         data = json.load(fh)
-    if not isinstance(data, dict):
-        raise ValueError("Recipe JSON must be an object at top-level")
-    return data
+    # v2: oggetto con chiave schema
+    if isinstance(data, dict) and data.get("schema") == SCHEMA_VERSION:
+        return data["data"]
+    # v1 legacy → migrazione
+    if isinstance(data, dict) and "data" in data:
+        migrated = _migrate_v1_to_v2(data["data"])
+        return migrated
+    # fallback: formato batch-1 puro
+    if isinstance(data, dict):
+        return _migrate_v1_to_v2(data)
+    raise ValueError("Recipe JSON non riconosciuto")
 
 
 def quick_save(state: Dict[str, Any]) -> Path:
     _HISTORY_DIR.mkdir(parents=True, exist_ok=True)
     target = _HISTORY_DIR / f"recipe_{_timestamp()}.json"
+    payload = {
+        "created": _timestamp(),
+        "schema":  SCHEMA_VERSION,
+        "data":    state,
+    }
     with target.open("w", encoding="utf-8") as fh:
-        json.dump(state, fh, ensure_ascii=False, indent=2)
+        json.dump(payload, fh, ensure_ascii=False, indent=2)
     return target
 
 # ---------------------------------------------------------------------------

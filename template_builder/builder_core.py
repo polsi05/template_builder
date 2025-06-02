@@ -18,6 +18,7 @@ _tk          = _safe("tkinter")
 _ttk         = _safe("tkinter.ttk")
 _widgets_mod = _safe("template_builder.widgets")
 _services    = _safe("template_builder.services.storage")
+_stepimg_mod = _safe("template_builder.step_image")      # ⇦ NUOVO
 _preview_mod = _safe("template_builder.infrastructure.preview_engine")
 _ui_utils    = _safe("template_builder.infrastructure.ui_utils")
 
@@ -39,6 +40,7 @@ show_error   = getattr(_ui_utils, "show_error",   lambda *a, **k: None)
 styled_option_menu = getattr(_ui_utils, "styled_option_menu", None)
 styled_spinbox     = getattr(_ui_utils, "styled_spinbox", None)
 StyledText         = getattr(_ui_utils, "StyledText", None)
+bind_steps_fn = getattr(_stepimg_mod, "bind_steps", None)   # ⇦ NUOVO
 
 # Directories for templates and exports (ensure existence)
 _BASE_DIR        = Path(__file__).resolve().parent
@@ -520,6 +522,34 @@ class TemplateBuilderApp:
                                if self.img_step and hasattr(self.img_step, "get_urls") else [])
         data["COLS_DESC"]   = int(self.cols_desc.get()) if self.cols_desc else 1
         data["COLS_REC"]    = int(self.cols_rec.get()) if self.cols_rec else 1
+
+        # ───────── StepImage binding & ALT placeholder ─────────
+        try:
+            from template_builder.step_image import bind_steps
+            txts = [data.get(f"STEP{i}", "") for i in range(1, 10)]
+            steps = bind_steps(txts, data["IMAGES_STEP"])
+            data["STEPS"] = [s.to_dict() for s in steps]
+            for s in steps:
+                data[f"STEP{s.order}_IMG_ALT"] = s.alt
+        except Exception:
+            # se modulo mancante, ignora (modalità headless)
+            pass
+        # ───────── StepImage binding & ALT placeholder (Batch-2 F5) ─────────
+        if callable(bind_steps_fn):
+            try:
+                txts  = [self._state.get(f"STEP{i}", "") for i in range(1, 10)]
+                images = data["IMAGES_STEP"] or list(self._state.get("IMAGES_STEP", []))
+                steps  = bind_steps_fn(txts, images)
+                # Serializza in dict (JSON-safe)
+                data["STEPS"] = [s.to_dict() for s in steps]
+                # Propaga ALT per placeholder legacy
+                for s in steps:
+                    data[f"STEP{s.order}_IMG_ALT"] = s.alt
+            except Exception:
+                data["STEPS"] = []
+        else:
+            data["STEPS"] = []
+        # ────────────────────────────────────────────────────────────────────        
         return data
 
     def _render_html(self) -> Optional[str]:
