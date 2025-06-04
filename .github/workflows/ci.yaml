@@ -6,27 +6,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Impostiamo DISPLAY a livello di job, così TTL e tutti gli step lo ereditano
+    # Impostiamo DISPLAY a livello di job, così tutti gli step lo ereditano
     env:
       DISPLAY: :99
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.10'
 
       # ────────────────────────────────────────────────
-      #  1) Installare Xvfb + Tkinter (python3-tk)
+      #  1) Installare Xvfb + Tkinter per Python 3.10
       # ────────────────────────────────────────────────
       - name: Install Xvfb and python3-tk
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb python3-tk
           Xvfb :99 -screen 0 1024x768x24 &
-        # Non serve inserire `env: DISPLAY` qui perché lo abbiamo già a livello di job
+        # DISPLAY è già esportato a livello di job
 
       - name: Install project
         run: |
