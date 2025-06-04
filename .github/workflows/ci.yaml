@@ -1,35 +1,32 @@
-name: CI
+name: CI Python-Tkinter Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - fix-verde-clean
+  pull_request:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # ────────────────────────────────────────────────────────────
-      # 1) Installiamo Xvfb e python3-tk (binding Tcl/Tk per Python 3.12)
-      # ────────────────────────────────────────────────────────────
-      - name: Install Xvfb and python3-tk
+      - name: Install Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+          check-latest: true
+
+      - name: Installa Tkinter e xvfb
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb python3-tk
+          sudo apt-get install -y python3.10-tk xvfb
 
-      # ────────────────────────────────────────────────────────────
-      # 2) Aggiorniamo pip e installiamo le dipendenze del progetto
-      # ────────────────────────────────────────────────────────────
-      - name: Install project dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -e ".[dnd,webpreview,test]"
+      - name: Installa dipendenze Python
+        run: pip install -r requirements.txt
 
-      # ────────────────────────────────────────────────────────────
-      # 3) Eseguiamo i test con python3 sotto xvfb-run (display virtuale)
-      # ────────────────────────────────────────────────────────────
-      - name: Run tests under Xvfb
-        run: xvfb-run -s "-screen 0 1024x768x24" python3 -m pytest -q
-
-      - name: Legacy coverage stub
-        run: python3 scripts/legacy_coverage_check.py
+      - name: Run tests Trastheadless con Xvfb
+        run: xvfb-run -s "-screen 0 1024x768x24" pytest -q
