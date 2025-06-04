@@ -6,36 +6,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Impostiamo DISPLAY a livello di job, così tutti gli step lo ereditano
-    env:
-      DISPLAY: :99
-
     steps:
       - uses: actions/checkout@v4
 
-      # ────────────────────────────────────────────────
-      #  1) Installare Xvfb + Tkinter per il Python di sistema
-      # ────────────────────────────────────────────────
-      - name: Install Xvfb and python3-tk
+      - name: Set up Python 3.x
+        # Non usiamo più setup-python: useremo python3 di sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb python3-tk
-          Xvfb :99 -screen 0 1024x768x24 &
-        # DISPLAY è già esportato a livello di job
-
-      # ────────────────────────────────────────────────
-      #  2) Installare le dipendenze col pip del Python di sistema
-      # ────────────────────────────────────────────────
-      - name: Install project dependencies
-        run: |
+          sudo apt-get install -y python3-pip python3-tk
           python3 -m pip install --upgrade pip
-          python3 -m pip install -e ".[dnd,webpreview,test]"
 
-      # ────────────────────────────────────────────────
-      #  3) Eseguiamo i test con python3 (TK e TTK disponibili)
-      # ────────────────────────────────────────────────
+      - name: Install project dependencies
+        run: python3 -m pip install -e ".[dnd,webpreview,test]"
+
       - name: Run tests
-        run: python3 -m pytest -q
+        run: xvfb-run -s "-screen 0 1024x768x24" python3 -m pytest -q
 
       - name: Legacy coverage stub
         run: python3 scripts/legacy_coverage_check.py
