@@ -5,6 +5,10 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Impostiamo DISPLAY a livello di job, così è ereditato da tutti gli step
+    env:
+      DISPLAY: :99
+
     steps:
       - uses: actions/checkout@v4
 
@@ -13,22 +17,24 @@ jobs:
         with:
           python-version: '3.12'
 
-      # ─── Nuovo step: installazione e avvio di Xvfb ───
-      - name: Install Xvfb
+      # ───────────────────────────────────────────────────────────────────────────
+      #  1) Installiamo Xvfb e lo avviamo sul display :99
+      #  Devo installare "xvfb" e avviarne il server prima di lanciare i test.
+      - name: Install and start Xvfb
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
+          # Avvio Xvfb in background sul display :99
           Xvfb :99 -screen 0 1024x768x24 &
-        env:
-          DISPLAY: :99
+      # Nota: non serve aggiungere `env: DISPLAY: :99` qui perché è già a livello di job
 
       - name: Install project
         run: |
           pip install -e ".[dnd,webpreview,test]"
 
+      # ───────────────────────────────────────────────────────────────────────────
+      #  2) Lanciamo i test: ora DISPLAY=:99 è già esportato in tutto il job
       - name: Run tests
-        env:
-          DISPLAY: :99
         run: pytest -q
 
       - name: Legacy coverage stub
