@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Impostiamo DISPLAY a livello di job, così è ereditato da tutti gli step
+
+    # Impostiamo DISPLAY a livello di job, così TTL e tutti gli step lo ereditano
     env:
       DISPLAY: :99
 
@@ -17,23 +18,23 @@ jobs:
         with:
           python-version: '3.12'
 
-      # ───────────────────────────────────────────────────────────────────────────
-      #  1) Installiamo Xvfb e lo avviamo sul display :99
-      #  Devo installare "xvfb" e avviarne il server prima di lanciare i test.
-      - name: Install and start Xvfb
+      # ────────────────────────────────────────────────
+      #  1) Installare Xvfb + Tkinter (python3-tk)
+      # ────────────────────────────────────────────────
+      - name: Install Xvfb and python3-tk
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb
-          # Avvio Xvfb in background sul display :99
+          sudo apt-get install -y xvfb python3-tk
           Xvfb :99 -screen 0 1024x768x24 &
-      # Nota: non serve aggiungere `env: DISPLAY: :99` qui perché è già a livello di job
+        # Non serve inserire `env: DISPLAY` qui perché lo abbiamo già a livello di job
 
       - name: Install project
         run: |
           pip install -e ".[dnd,webpreview,test]"
 
-      # ───────────────────────────────────────────────────────────────────────────
-      #  2) Lanciamo i test: ora DISPLAY=:99 è già esportato in tutto il job
+      # ────────────────────────────────────────────────
+      #  2) Eseguiamo i test (ora DISPLAY=:99 è attivo ed è presente Tk/Ttk)
+      # ────────────────────────────────────────────────
       - name: Run tests
         run: pytest -q
 
