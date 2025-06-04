@@ -9,32 +9,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ────────────────────────────────────────────────────────────
-      # 1) Installiamo Python 3.10, Tcl/Tk e pip per 3.10
-      # ────────────────────────────────────────────────────────────
       - name: Install Python 3.10 + tkinter + pip
         run: |
           sudo apt-get update
-          # Installiamo Python 3.10, il binding Tk per 3.10 e distutils
           sudo apt-get install -y python3.10 python3.10-tk python3.10-distutils
-          # Creiamo un pip specifico per python3.10
           python3.10 -m ensurepip
           python3.10 -m pip install --upgrade pip
-        # NOTA: qui non serve xvfb né DISPLAY, perché gestiremo il virtual display nel passo dei test
 
-      # ────────────────────────────────────────────────────────────
-      # 2) Installiamo le dipendenze del progetto con python3.10
-      # ────────────────────────────────────────────────────────────
       - name: Install project dependencies (py3.10)
-        run: |
-          python3.10 -m pip install -e ".[dnd,webpreview,test]"
+        run: python3.10 -m pip install -e ".[dnd,webpreview,test]"
 
-      # ────────────────────────────────────────────────────────────
-      # 3) Eseguiamo i test con python3.10 sotto xvfb-run
-      # ────────────────────────────────────────────────────────────
-      - name: Run tests under Xvfb (py3.10)
+      # ────────────────────────────────────────────────
+      # Debug: verifiche ambientali
+      # ────────────────────────────────────────────────
+      - name: Check Python 3.10, Tkinter/Ttk e DISPLAY
         run: |
-          xvfb-run -s "-screen 0 1024x768x24" python3.10 -m pytest -q
+          echo "→ Versione python3.10:" 
+          python3.10 --version
+
+          echo "→ Controllo binding Tkinter/Ttk:"
+          python3.10 - << 'EOF'
+import tkinter as tk
+from tkinter import ttk
+root = tk.Tk()
+print("  Tcl patchlevel:", root.tk.call("info", "patchlevel"))
+print("  Ttk.Frame esiste come:", ttk.Frame)
+root.destroy()
+EOF
+
+          echo "→ Provo a lanciare tk.Tk() sotto xvfb-run:"
+          xvfb-run -s "-screen 0 1024x768x24" python3.10 - << 'EOF'
+import os, tkinter as tk
+print("  DISPLAY in xvfb-run:", os.environ.get("DISPLAY"))
+root = tk.Tk()
+print("  tk.Tk() creato con successo su display", os.environ["DISPLAY"])
+root.destroy()
+EOF
+
+      # ────────────────────────────────────────────────
+      # 3) Eseguiamo i test con python3.10 sotto xvfb-run
+      # ────────────────────────────────────────────────
+      - name: Run tests under Xvfb (py3.10)
+        run: xvfb-run -s "-screen 0 1024x768x24" python3.10 -m pytest -q
 
       - name: Legacy coverage stub (py3.10)
         run: python3.10 scripts/legacy_coverage_check.py
