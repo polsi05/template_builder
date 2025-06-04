@@ -8,14 +8,20 @@ from template_builder.widgets import SortableImageRepeaterField
 
 class TestSortableImageRepeaterFieldAlt(unittest.TestCase):
     def setUp(self) -> None:
-        # Creiamo una root Tkinter in modalità headless
-        self.root = tk.Tk()
-        # Impostiamo geometry minima per evitare warning
-        self.root.withdraw()
+        # Creiamo una root Tkinter; se non c'è DISPLAY, usiamo tk.Tcl() come fallback
+        try:
+            self.root = tk.Tk()
+            # Non mostriamo la finestra
+            self.root.withdraw()
+        except tk.TclError:
+            # Nessun display disponibile → interprete Tcl standalone
+            self.root = tk.Tcl()
         self.field = SortableImageRepeaterField(self.root)
 
     def tearDown(self) -> None:
-        self.root.destroy()
+        # Se abbiamo effettivamente una finestra Tk, la distruggiamo
+        if isinstance(self.root, tk.Tk):
+            self.root.destroy()
 
     def test_get_alts_returns_correct_list(self):
         # Aggiungiamo due righe con URL e ALT
