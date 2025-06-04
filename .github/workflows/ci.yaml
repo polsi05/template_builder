@@ -10,17 +10,15 @@ jobs:
       - uses: actions/checkout@v4
 
       # ────────────────────────────────────────────────────────────
-      # 1) Installiamo Xvfb + Tcl/Tk per il Python 3.12 di sistema
+      # 1) Installiamo Xvfb + Tcl/Tk + distutils (per python3.12)
       # ────────────────────────────────────────────────────────────
-      - name: Install Xvfb, python3-tk, python3-distutils
+      - name: Install Xvfb, python3-tk, python3.12-distutils
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb python3-tk python3-distutils
-        # Nota: non serve installare “python3.12-tk” perché il pacchetto si chiama semplicemente python3-tk
-        #       e si lega automaticamente alla versione di Python 3 (che su Ubuntu 24.04 è 3.12).
+          sudo apt-get install -y xvfb python3-tk python3.12-distutils
 
       # ────────────────────────────────────────────────────────────
-      # 2) Installiamo le dipendenze del progetto con python3
+      # 2) Installiamo le dipendenze del progetto (usando python3)
       # ────────────────────────────────────────────────────────────
       - name: Install project dependencies
         run: |
