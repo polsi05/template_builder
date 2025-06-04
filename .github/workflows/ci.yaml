@@ -1,32 +1,32 @@
-name: CI Python-Tkinter Tests
+name: CI
 
-on:
-  push:
-    branches:
-      - fix-verde-clean
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04    # o ubuntu-24.04 con apt-get install python3.10-tk
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
-      - name: Installa Tkinter e xvfb (solo su ubuntu-24.04)
-        if: runner.os == 'Linux' && matrix.os == 'ubuntu-24.04'
+      - name: Install Tkinter and Xvfb
         run: |
           sudo apt-get update
           sudo apt-get install -y python3.10-tk xvfb
 
-      - name: Aggiorna pip
-        run: python3 -m pip install --upgrade pip
+      - name: Install project
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dnd,webpreview,test]"
 
-      - name: Run tests headless con Xvfb
-        run: xvfb-run -s "-screen 0 1024x768x24" python3 -m pytest -q
+      - name: Run tests under Xvfb
+        run: |
+          xvfb-run -s "-screen 0 1024x768x24" pytest -q
+
+      - name: Legacy coverage stub
+        run: python scripts/legacy_coverage_check.py
