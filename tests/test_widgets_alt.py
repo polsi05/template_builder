@@ -11,11 +11,9 @@ class TestSortableImageRepeaterFieldAlt(unittest.TestCase):
         # Creiamo una root Tkinter; se non c'è DISPLAY, usiamo tk.Tcl() come fallback
         try:
             self.root = tk.Tk()
-            # Non mostriamo la finestra
-            self.root.withdraw()
+            self.root.withdraw()  # non mostriamo la finestra
         except tk.TclError:
-            # Nessun display disponibile → interprete Tcl standalone
-            self.root = tk.Tcl()
+            self.skipTest("Tkinter/Display non disponibile")
         self.field = SortableImageRepeaterField(self.root)
 
     def tearDown(self) -> None:

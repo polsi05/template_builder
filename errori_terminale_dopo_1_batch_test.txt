@@ -1,0 +1,169 @@
+.venvrosarioaprile@MacBook-Air-di-rosario project-root % pytest -q                                                   
+
+......................F..F............                                                                                                           [100%]
+======================================================================= FAILURES =======================================================================
+_____________________________________________________ test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] _____________________________________________________
+
+mode = 'p', text = 'a<b>c', expected = '<p>a&lt;b&gt;c</p>'
+
+    @pytest.mark.parametrize("mode,text,expected", [
+        ("ul", "apple", "<ul><li>apple</li></ul>"),
+        ("p", "apple", "<p>apple</p>"),
+        ("ul", "line1\nline2", "<ul><li>line1</li><li>line2</li></ul>"),
+        ("p", "one; two", "<p>one</p><p>two</p>"),
+        ("p", "a<b>c", "<p>a&lt;b&gt;c</p>"),
+        ("ul", "<tag>", "<tag>"),
+    ])
+    def test_auto_format(mode, text, expected):
+        result = txt.auto_format(text, mode=mode)
+>       assert result == expected
+E       AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+E         
+E         - <p>a&lt;b&gt;c</p>
+E         + a<b>c
+
+tests/test_text.py:25: AssertionError
+_________________________________________________________________ test_images_to_html __________________________________________________________________
+
+    def test_images_to_html():
+        html = txt.images_to_html(2, 3)
+        # Controlla che la tabella abbia 2 righe e 3 colonne con i segnaposto numerati
+        assert html.startswith("<table>")
+>       assert "{{ IMG1 }}" in html and "{{ IMG6 }}" in html
+E       assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="" style="max-width:100%;"></td>\n    <td><img src="{ IMG6 }" alt="" style="max-width:100%;"></td>\n  </tr>\n</table>')
+
+tests/test_text.py:36: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_text.py::test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] - AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+FAILED tests/test_text.py::test_images_to_html - assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="...
+.venvrosarioaprile@MacBook-Air-di-rosario project-root % pytest -q
+
+.............................F..F............                                                                                                    [100%]
+======================================================================= FAILURES =======================================================================
+_____________________________________________________ test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] _____________________________________________________
+
+mode = 'p', text = 'a<b>c', expected = '<p>a&lt;b&gt;c</p>'
+
+    @pytest.mark.parametrize("mode,text,expected", [
+        ("ul", "apple", "<ul><li>apple</li></ul>"),
+        ("p", "apple", "<p>apple</p>"),
+        ("ul", "line1\nline2", "<ul><li>line1</li><li>line2</li></ul>"),
+        ("p", "one; two", "<p>one</p><p>two</p>"),
+        ("p", "a<b>c", "<p>a&lt;b&gt;c</p>"),
+        ("ul", "<tag>", "<tag>"),
+    ])
+    def test_auto_format(mode, text, expected):
+        result = txt.auto_format(text, mode=mode)
+>       assert result == expected
+E       AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+E         
+E         - <p>a&lt;b&gt;c</p>
+E         + a<b>c
+
+tests/test_text.py:25: AssertionError
+_________________________________________________________________ test_images_to_html __________________________________________________________________
+
+    def test_images_to_html():
+        html = txt.images_to_html(2, 3)
+        # Controlla che la tabella abbia 2 righe e 3 colonne con i segnaposto numerati
+        assert html.startswith("<table>")
+>       assert "{{ IMG1 }}" in html and "{{ IMG6 }}" in html
+E       assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="" style="max-width:100%;"></td>\n    <td><img src="{ IMG6 }" alt="" style="max-width:100%;"></td>\n  </tr>\n</table>')
+
+tests/test_text.py:36: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_text.py::test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] - AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+FAILED tests/test_text.py::test_images_to_html - assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="...
+.venvrosarioaprile@MacBook-Air-di-rosario project-root % pytest -q
+
+.............................F..F...............                                                                                                 [100%]
+======================================================================= FAILURES =======================================================================
+_____________________________________________________ test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] _____________________________________________________
+
+mode = 'p', text = 'a<b>c', expected = '<p>a&lt;b&gt;c</p>'
+
+    @pytest.mark.parametrize("mode,text,expected", [
+        ("ul", "apple", "<ul><li>apple</li></ul>"),
+        ("p", "apple", "<p>apple</p>"),
+        ("ul", "line1\nline2", "<ul><li>line1</li><li>line2</li></ul>"),
+        ("p", "one; two", "<p>one</p><p>two</p>"),
+        ("p", "a<b>c", "<p>a&lt;b&gt;c</p>"),
+        ("ul", "<tag>", "<tag>"),
+    ])
+    def test_auto_format(mode, text, expected):
+        result = txt.auto_format(text, mode=mode)
+>       assert result == expected
+E       AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+E         
+E         - <p>a&lt;b&gt;c</p>
+E         + a<b>c
+
+tests/test_text.py:25: AssertionError
+_________________________________________________________________ test_images_to_html __________________________________________________________________
+
+    def test_images_to_html():
+        html = txt.images_to_html(2, 3)
+        # Controlla che la tabella abbia 2 righe e 3 colonne con i segnaposto numerati
+        assert html.startswith("<table>")
+>       assert "{{ IMG1 }}" in html and "{{ IMG6 }}" in html
+E       assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="" style="max-width:100%;"></td>\n    <td><img src="{ IMG6 }" alt="" style="max-width:100%;"></td>\n  </tr>\n</table>')
+
+tests/test_text.py:36: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_text.py::test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] - AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+FAILED tests/test_text.py::test_images_to_html - assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="...
+.venvrosarioaprile@MacBook-Air-di-rosario project-root % pytest -q
+
+.F...............................F..F...............                                                                                             [100%]
+======================================================================= FAILURES =======================================================================
+___________________________________________________________ test_repr_and_display_available ____________________________________________________________
+
+    def test_repr_and_display_available():
+        app = TemplateBuilderApp(enable_gui=False)
+        r = repr(app)
+        assert "TemplateBuilderApp" in r
+        # Simula assenza di DISPLAY su Linux
+        orig_display = os.environ.get("DISPLAY")
+        os.environ["DISPLAY"] = ""
+>       assert TemplateBuilderApp._display_available() == False
+E       assert True == False
+E        +  where True = <function TemplateBuilderApp._display_available at 0x1063a5e40>()
+E        +    where <function TemplateBuilderApp._display_available at 0x1063a5e40> = TemplateBuilderApp._display_available
+
+tests/test_builder_core.py:13: AssertionError
+_____________________________________________________ test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] _____________________________________________________
+
+mode = 'p', text = 'a<b>c', expected = '<p>a&lt;b&gt;c</p>'
+
+    @pytest.mark.parametrize("mode,text,expected", [
+        ("ul", "apple", "<ul><li>apple</li></ul>"),
+        ("p", "apple", "<p>apple</p>"),
+        ("ul", "line1\nline2", "<ul><li>line1</li><li>line2</li></ul>"),
+        ("p", "one; two", "<p>one</p><p>two</p>"),
+        ("p", "a<b>c", "<p>a&lt;b&gt;c</p>"),
+        ("ul", "<tag>", "<tag>"),
+    ])
+    def test_auto_format(mode, text, expected):
+        result = txt.auto_format(text, mode=mode)
+>       assert result == expected
+E       AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+E         
+E         - <p>a&lt;b&gt;c</p>
+E         + a<b>c
+
+tests/test_text.py:25: AssertionError
+_________________________________________________________________ test_images_to_html __________________________________________________________________
+
+    def test_images_to_html():
+        html = txt.images_to_html(2, 3)
+        # Controlla che la tabella abbia 2 righe e 3 colonne con i segnaposto numerati
+        assert html.startswith("<table>")
+>       assert "{{ IMG1 }}" in html and "{{ IMG6 }}" in html
+E       assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="" style="max-width:100%;"></td>\n    <td><img src="{ IMG6 }" alt="" style="max-width:100%;"></td>\n  </tr>\n</table>')
+
+tests/test_text.py:36: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_builder_core.py::test_repr_and_display_available - assert True == False
+FAILED tests/test_text.py::test_auto_format[p-a<b>c-<p>a&lt;b&gt;c</p>] - AssertionError: assert 'a<b>c' == '<p>a&lt;b&gt;c</p>'
+FAILED tests/test_text.py::test_images_to_html - assert ('{{ IMG1 }}' in '<table>\n  <tr>\n    <td><img src="{ IMG1 }" alt="" style="max-width:100%;"></td>\n    <td><img src="{ IMG2 }" alt=""...="...
+.venvrosarioaprile@MacBook-Air-di-rosario project-root % 
