@@ -1,5 +1,3 @@
-# File: .github/workflows/ci.yaml
-
 name: CI Python-Tkinter Tests
 
 on:
@@ -10,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04   # <--- utilizza Ubuntu 22.04, che include python3-tk
+    runs-on: ubuntu-22.04    # o ubuntu-24.04 con apt-get install python3.10-tk
 
     steps:
       - name: Checkout repository
@@ -19,11 +17,16 @@ jobs:
       - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"   # <--- NON “3.1”, ma “3.10”
+          python-version: "3.10"
 
-      - name: Install project dependencies
+      - name: Installa Tkinter e xvfb (solo su ubuntu-24.04)
+        if: runner.os == 'Linux' && matrix.os == 'ubuntu-24.04'
         run: |
-          python3 -m pip install --upgrade pip
+          sudo apt-get update
+          sudo apt-get install -y python3.10-tk xvfb
 
-      - name: Run tests under Xvfb
+      - name: Aggiorna pip
+        run: python3 -m pip install --upgrade pip
+
+      - name: Run tests headless con Xvfb
         run: xvfb-run -s "-screen 0 1024x768x24" python3 -m pytest -q
