@@ -9,26 +9,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ────────────────────────────────────────────────
-      #  1) Installare Xvfb + Tkinter per Python 3.12
-      # ────────────────────────────────────────────────
-      - name: Install Xvfb and python3.12-tk
+      # ────────────────────────────────────────────────────────────
+      # 1) Installiamo Python 3.10, Tcl/Tk e pip per 3.10
+      # ────────────────────────────────────────────────────────────
+      - name: Install Python 3.10 + tkinter + pip
         run: |
           sudo apt-get update
-          # Installiamo xvfb e il binding Tk per Python 3.12
-          sudo apt-get install -y xvfb python3.12-tk
-        # Non serve avviare Xvfb manualmente, useremo xvfb-run nel passo dei test
+          # Installiamo Python 3.10, il binding Tk per 3.10 e distutils
+          sudo apt-get install -y python3.10 python3.10-tk python3.10-distutils
+          # Creiamo un pip specifico per python3.10
+          python3.10 -m ensurepip
+          python3.10 -m pip install --upgrade pip
+        # NOTA: qui non serve xvfb né DISPLAY, perché gestiremo il virtual display nel passo dei test
 
-      - name: Install project dependencies
+      # ────────────────────────────────────────────────────────────
+      # 2) Installiamo le dipendenze del progetto con python3.10
+      # ────────────────────────────────────────────────────────────
+      - name: Install project dependencies (py3.10)
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -e ".[dnd,webpreview,test]"
+          python3.10 -m pip install -e ".[dnd,webpreview,test]"
 
-      # ────────────────────────────────────────────────
-      #  2) Eseguiamo i test usando xvfb-run con Python 3.12
-      # ────────────────────────────────────────────────
-      - name: Run tests
-        run: xvfb-run -s "-screen 0 1024x768x24" python3 -m pytest -q
+      # ────────────────────────────────────────────────────────────
+      # 3) Eseguiamo i test con python3.10 sotto xvfb-run
+      # ────────────────────────────────────────────────────────────
+      - name: Run tests under Xvfb (py3.10)
+        run: |
+          xvfb-run -s "-screen 0 1024x768x24" python3.10 -m pytest -q
 
-      - name: Legacy coverage stub
-        run: python3 scripts/legacy_coverage_check.py
+      - name: Legacy coverage stub (py3.10)
+        run: python3.10 scripts/legacy_coverage_check.py
