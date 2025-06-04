@@ -9,16 +9,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.x
-        # Non usiamo più setup-python: useremo python3 di sistema
+      # ────────────────────────────────────────────────
+      #  1) Installare Xvfb + Tkinter per Python 3.12
+      # ────────────────────────────────────────────────
+      - name: Install Xvfb and python3.12-tk
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-tk
-          python3 -m pip install --upgrade pip
+          # Installiamo xvfb e il binding Tk per Python 3.12
+          sudo apt-get install -y xvfb python3.12-tk
+        # Non serve avviare Xvfb manualmente, useremo xvfb-run nel passo dei test
 
       - name: Install project dependencies
-        run: python3 -m pip install -e ".[dnd,webpreview,test]"
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -e ".[dnd,webpreview,test]"
 
+      # ────────────────────────────────────────────────
+      #  2) Eseguiamo i test usando xvfb-run con Python 3.12
+      # ────────────────────────────────────────────────
       - name: Run tests
         run: xvfb-run -s "-screen 0 1024x768x24" python3 -m pytest -q
 
