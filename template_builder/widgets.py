@@ -1,51 +1,60 @@
-#template_builder/widgets.py
 """
-Widget library for Template Builder.
-Fully aligned with builder_core_da_validare.py: supports PlaceholderEntry, PlaceholderSpinbox,
-PlaceholderMultiTextField, MultiTextField alias, and SortableImageRepeaterField with drag&drop.
+Widget library per Template Builder.
+Mantiene compatibilità con i test originali e integra le estensioni F6/F7:
+  - PlaceholderEntry, PlaceholderSpinbox, PlaceholderMultiTextField (alias MultiTextField)
+  - SortableImageRepeaterField con supporto ALT
+  - HAS_TOOLTIP per test_tooltips.py
 """
+
 from __future__ import annotations
 import os
 import tkinter as tk
-from tkinter import ttk, filedialog, TclError
-from typing import Any, Callable, List, Sequence, Optional
+from tkinter import ttk, TclError
+from typing import Any, Callable, List, Optional
 
 from .services import text as text_service
 from .services import images as image_service
 
 # ──────────────── Drag & Drop opzionale ─────────────────────────
 try:
-    from tkinterdnd2 import DND_FILES  # type: ignore
-    HAS_DND: bool = True
+    import tkinterdnd2 as dndlib
+    HAS_DND = True
+    DND_FILES = dndlib.DND_FILES
 except ImportError:
-    DND_FILES = None  # type: ignore[assignment]
     HAS_DND = False
+    DND_FILES = None
+
+
+def _split_dnd_event_data(data: str) -> list[str]:
+    out: list[str] = []
+    token = ""
+    in_brace = False
+    for ch in data:
+        if ch == "{":
+            in_brace, token = True, ""
+        elif ch == "}":
+            in_brace = False
+            out.append(token)
+            token = ""
+        elif ch == " " and not in_brace:
+            if token:
+                out.append(token)
+                token = ""
+        else:
+            token += ch
+    if token:
+        out.append(token)
+    return [os.path.expanduser(p) for p in out]
 
 # ──────────────── Tooltip opzionale ──────────────────────────────
 try:
-    from tkinter import Toplevel
+    from .infrastructure.ui_utils import _Tooltip
     _TOOLTIP_AVAILABLE = True
-    # Flag richiesto dai test per abilitazione tooltip
-    HAS_TOOLTIP: bool = _TOOLTIP_AVAILABLE
 except ImportError:
     _TOOLTIP_AVAILABLE = False
-    HAS_TOOLTIP: bool = False
 
-class _Tooltip:
-    def __init__(self, widget: tk.Misc, text: str) -> None:
-        self.win = Toplevel(widget)
-        self.win.wm_overrideredirect(True)
-        self.win.attributes("-topmost", True)
-        label = tk.Label(self.win, text=text, bg="#ffffe0", relief="solid", borderwidth=1, padx=4, pady=2)
-        label.pack()
-        x = widget.winfo_pointerx() + 20
-        y = widget.winfo_pointery() + 10
-        self.win.wm_geometry(f"+{x}+{y}")
-    def hide(self) -> None:
-        try:
-            self.win.destroy()
-        except Exception:
-            pass
+# Export del flag HAS_TOOLTIP per i test
+HAS_TOOLTIP = _TOOLTIP_AVAILABLE
 
 def _attach_tooltip(widget: tk.Misc, tip: str) -> None:
     if not _TOOLTIP_AVAILABLE or not tip:
@@ -58,7 +67,6 @@ def _attach_tooltip(widget: tk.Misc, tip: str) -> None:
         nonlocal tooltip
         if tooltip:
             tooltip.hide()
-            tooltip = None
     widget.bind("<Enter>", on_enter)
     widget.bind("<Leave>", on_leave)
 
@@ -72,7 +80,7 @@ def _apply_border(widget: tk.Widget, ok: bool) -> None:
 
 # ──────────────── PlaceholderEntry ────────────────────────────────
 class PlaceholderEntry(tk.Entry):
-    """Entry with ghost-text and get_value(), render_html()"""
+    """Entry con ghost-text e metodi get_value() e render_html()"""
     def __init__(self, master: tk.Misc, placeholder: str = "", **kw: Any) -> None:
         super().__init__(master, **kw)
         self.placeholder = placeholder
@@ -81,27 +89,31 @@ class PlaceholderEntry(tk.Entry):
         self.bind("<FocusIn>", self._clear_placeholder)
         self.bind("<FocusOut>", self._add_placeholder)
         self._add_placeholder()
-        _attach_tooltip(self, text_service.get_field_help(placeholder) or placeholder)
+
     def _add_placeholder(self, *_: Any) -> None:
         if not self.get():
+            self.delete(0, tk.END)
             self.insert(0, self.placeholder)
             self.configure(foreground="grey")
             self._has_placeholder = True
+
     def _clear_placeholder(self, *_: Any) -> None:
         if self._has_placeholder:
             self.delete(0, tk.END)
             self.configure(foreground=self.default_fg)
             self._has_placeholder = False
+
     def get_value(self) -> str:
-        """Return actual text or empty if placeholder"""
+        """Ritorna testo reale o stringa vuota se placeholder"""
         return "" if self._has_placeholder else self.get().strip()
+
     def render_html(self) -> str:
-        """Format text for HTML (paragraphs)"""
+        """Restituisce HTML in <p> del contenuto (usa auto_format)"""
         return text_service.auto_format(self.get_value(), mode="p")
 
 # ──────────────── PlaceholderSpinbox ─────────────────────────────
 class PlaceholderSpinbox(tk.Spinbox):
-    """Spinbox with ghost-text and get_value()"""
+    """Spinbox con ghost-text e get_value()"""
     def __init__(self, master: tk.Misc, placeholder: str = "", **kw: Any) -> None:
         super().__init__(master, **kw)
         self.placeholder = placeholder
@@ -110,32 +122,39 @@ class PlaceholderSpinbox(tk.Spinbox):
         self.bind("<FocusIn>", self._clear_placeholder)
         self.bind("<FocusOut>", self._add_placeholder)
         self._add_placeholder()
+
     def _add_placeholder(self, *_: Any) -> None:
         if not self.get():
             self.delete(0, tk.END)
             self.insert(0, self.placeholder)
             self.configure(foreground="grey")
             self._has_placeholder = True
+
     def _clear_placeholder(self, *_: Any) -> None:
         if self._has_placeholder:
             self.delete(0, tk.END)
             self.configure(foreground=self.default_fg)
             self._has_placeholder = False
+
     def get_value(self) -> str:
-        """Return actual value or empty if placeholder"""
+        """Ritorna valore reale o stringa vuota se placeholder"""
         return "" if self._has_placeholder else self.get().strip()
 
-# ───────────── PlaceholderMultiTextField ────────────────────────
+# ──────────────── PlaceholderMultiTextField ──────────────────────
 class PlaceholderMultiTextField(ttk.Frame):
     """
-    Multi-line Text with placeholder, smart-paste, render_html().
-    Sig: (master, placeholder, mode, on_change)
+    Campo testo multilinea con placeholder, smart-paste e auto-format.
+    I test originali si aspettano:
+      - metodo get_raw() che restituisce "" se placeholder è attivo, altrimenti tutto il contenuto
+      - metodo render_html() per l’output in HTML
+      - get_value() per il testo effettivo (vuoto se placeholder)
     """
     def __init__(
-        self, master: tk.Misc,
-        placeholder: str,
+        self,
+        master: tk.Misc,
+        placeholder: str = "",
         mode: str = "p",
-        on_change: Optional[Callable[[], None]] = None,
+        on_change: Callable[[], None] | None = None,
         **kw: Any,
     ) -> None:
         super().__init__(master, **kw)
@@ -154,115 +173,206 @@ class PlaceholderMultiTextField(ttk.Frame):
         self.text.bind("<Control-v>", self._on_paste, add="+")
         self.text.bind("<Command-v>", self._on_paste, add="+")
         self._add_placeholder()
+
     def _add_placeholder(self, *_: Any) -> None:
         if not self.text.get("1.0", tk.END).strip():
             self.text.insert("1.0", self.placeholder)
             self.text.configure(foreground="grey")
             self._has_placeholder = True
+
     def _clear_placeholder(self, *_: Any) -> None:
         if self._has_placeholder:
             self.text.delete("1.0", tk.END)
             self.text.configure(foreground="black")
             self._has_placeholder = False
+
     def _on_paste(self, event: tk.Event) -> str:
         try:
-            raw = self.text.clipboard_get()
+            content = self.text.selection_get(selection="CLIPBOARD")
         except TclError:
-            return "break"
-        parts = text_service.smart_paste(raw)
+            return ""
+        parts = text_service.smart_paste(content)
         if parts:
             self.text.delete("1.0", tk.END)
-            for line in parts:
-                self.text.insert(tk.END, line + "\n")
-        return "break"
-    def get_raw(self) -> str:
-        """Return raw text or empty if placeholder"""
-        return "" if self._has_placeholder else self.text.get("1.0", tk.END).strip()
-    def render_html(self) -> str:
-        """Format raw text into HTML (ul/p)"""
-        return text_service.auto_format(self.get_raw(), mode=self.mode)
+            joined = "\n".join(parts)
+            html_formatted = text_service.auto_format(joined, mode=self.mode)
+            self.text.insert("1.0", html_formatted)
+            if self.on_change:
+                self.on_change()
+            return "break"
+        return ""
 
-# Alias legacy
+    def get_raw(self) -> str:
+        """
+        Metodo richiesto dai test originali (test_widgets.py):
+        restituisce "" se placeholder è attivo, altrimenti tutto il contenuto
+        """
+        return "" if self._has_placeholder else self.text.get("1.0", tk.END)
+
+    def get_value(self) -> str:
+        """Ritorna testo effettivo o stringa vuota se placeholder"""
+        return "" if self._has_placeholder else self.text.get("1.0", tk.END).strip()
+
+    def render_html(self) -> str:
+        """Formatta il contenuto in HTML (usa auto_format)"""
+        return text_service.auto_format(self.get_value(), mode=self.mode)
+
+# Alias per retrocompatibilità
 MultiTextField = PlaceholderMultiTextField
 
-# ───────────── SortableImageRepeaterField ───────────────────────
+# ──────────────── Classe Row per _rows ───────────────────────────
+class Row:
+    """
+    Contenitore per ogni riga di SortableImageRepeaterField.
+    Supporta:
+      - row.frame: Frame effettivo
+      - row.entry_src: PlaceholderEntry per URL
+      - row.entry_alt: PlaceholderEntry per ALT
+    Inoltre implementa winfo_children() delegando al frame,
+    __iter__ per unpacking, e __getitem__ per index.
+    """
+    def __init__(self, frame: tk.Frame, entry_src: PlaceholderEntry, entry_alt: PlaceholderEntry):
+        self.frame = frame
+        self.entry_src = entry_src
+        self.entry_alt = entry_alt
+
+    def winfo_children(self):
+        return self.frame.winfo_children()
+
+    def __iter__(self):
+        return iter((self.frame, self.entry_src, self.entry_alt))
+
+    def __getitem__(self, idx: int):
+        return (self.frame, self.entry_src, self.entry_alt)[idx]
+
+# ──────────────── SortableImageRepeaterField ────────────────────
 class SortableImageRepeaterField(ttk.Frame):
     """
-    Manages list of image URLs:
-      - _add_row(src: str)
-      - _move_row, _del_row
+    Gestisce una lista ordinabile di righe, ciascuna con due Entry: URL immagine e ALT text.
+    Ora _rows contiene istanze di Row.
+    Espone:
       - get_urls() -> List[str]
-      - Optional drag&drop if HAS_DND
+      - get_alts() -> List[str]
+      - validazione: se URL e ALT validi, bordi verdi, altrimenti rossi
     """
     def __init__(self, master: tk.Misc, **kw: Any) -> None:
         super().__init__(master, **kw)
-        self._rows: List[ttk.Frame] = []
-        # Optional DnD
+        self._rows: List[Row] = []
+        self.enable_alt = True  # Feature toggle per ALT
         if HAS_DND and DND_FILES:
             try:
                 self.drop_target_register(DND_FILES)  # type: ignore[attr-defined]
                 self.dnd_bind("<<Drop>>", self._on_drop)  # type: ignore[attr-defined]
             except TclError:
                 pass
-    def _on_drop(self, event):
-        for p in _split_dnd_event_data(event.data):
-            self._add_row(p)
-    def _add_row(self, src: str = "") -> None:
-        row = ttk.Frame(self)
-        entry = PlaceholderEntry(row, placeholder=src)
-        entry.insert(0, src)
-        entry.pack(side="left", fill="x", expand=True, padx=2)
-        ttk.Button(row, text="↑", width=2, command=lambda: self._move_row(row, -1)).pack(side="left")
-        ttk.Button(row, text="↓", width=2, command=lambda: self._move_row(row, +1)).pack(side="left")
-        ttk.Button(row, text="✕", width=2, command=lambda: self._del_row(row)).pack(side="left")
-        entry.bind("<FocusOut>", lambda e, ent=entry: self._validate(ent), add="+")
-        entry.bind("<KeyRelease>", lambda e, ent=entry: self._debounce_validate(ent), add="+")
-        self._rows.append(row)
-        row.pack(fill="x", pady=2)
-    def _move_row(self, row: ttk.Frame, delta: int) -> None:
-        idx = self._rows.index(row)
-        new = idx + delta
-        if 0 <= new < len(self._rows):
-            self._rows[idx], self._rows[new] = self._rows[new], self._rows[idx]
-            for r in self._rows:
-                r.pack_forget()
-                r.pack(fill="x", pady=2)
-    def _del_row(self, row: ttk.Frame) -> None:
-        row.destroy()
-        self._rows.remove(row)
-    def _validate(self, entry: tk.Entry) -> None:
-        try:
-            image_service.validate_url(entry.get().strip())
-            _apply_border(entry, ok=True)
-        except Exception:
-            _apply_border(entry, ok=False)
-    def _debounce_validate(self, entry: tk.Entry) -> None:
-        if hasattr(entry, "_after_id"):
-            entry.after_cancel(entry._after_id)
-        entry._after_id = entry.after(300, lambda ent=entry: self._validate(ent))
-    def get_urls(self) -> List[str]:
-        return [row.winfo_children()[0].get_value() for row in self._rows]
 
-# ────────── Utility: parse DnD data ─────────────────────────────
-def _split_dnd_event_data(data: str | bytes | None) -> Sequence[str]:
-    if not data:
-        return []
-    if isinstance(data, bytes):
-        data = data.decode()
-    out, token, in_brace = [], "", False
-    for ch in data:
-        if ch == "{":
-            in_brace, token = True, ""
-        elif ch == "}":
-            in_brace = False
-            out.append(token)
-            token = ""
-        elif ch == " " and not in_brace:
-            if token:
-                out.append(token)
-                token = ""
+    def _on_drop(self, event: Any) -> None:
+        for p in _split_dnd_event_data(event.data):
+            self._add_row(p, "")
+
+    def _add_row(self, src: str = "", alt: str = "") -> None:
+        """
+        Aggiunge una riga:
+          - un Frame contenente due Entry (URL e ALT) e tre bottoni ↑, ↓, ✕
+        """
+        row_frame = ttk.Frame(self)
+        entry_src = PlaceholderEntry(row_frame, placeholder=src)
+        if src:
+            entry_src._has_placeholder = False
+            entry_src.delete(0, tk.END)
+            entry_src.insert(0, src)
+        entry_src.pack(side="left", fill="x", expand=True, padx=2)
+
+        entry_alt = PlaceholderEntry(row_frame, placeholder=alt)
+        if alt:
+            entry_alt._has_placeholder = False
+            entry_alt.delete(0, tk.END)
+            entry_alt.insert(0, alt)
+        entry_alt.pack(side="left", fill="x", expand=True, padx=2)
+
+        btn_up = ttk.Button(row_frame, text="↑", width=2, command=lambda r=row_frame: self._move_row(r, -1))
+        btn_up.pack(side="left")
+        btn_down = ttk.Button(row_frame, text="↓", width=2, command=lambda r=row_frame: self._move_row(r, +1))
+        btn_down.pack(side="left")
+        btn_del = ttk.Button(row_frame, text="✕", width=2, command=lambda r=row_frame: self._del_row(r))
+        btn_del.pack(side="left")
+
+        entry_src.bind(
+            "<FocusOut>",
+            lambda e, es=entry_src, ea=entry_alt: self._validate(es, ea),
+            add="+"
+        )
+        entry_alt.bind(
+            "<FocusOut>",
+            lambda e, es=entry_src, ea=entry_alt: self._validate(es, ea),
+            add="+"
+        )
+
+        row_frame.pack(fill="x", pady=2)
+        self._rows.append(Row(row_frame, entry_src, entry_alt))
+
+    def _move_row(self, row_frame_or_row: tk.Frame | Row, direction: int) -> None:
+        """
+        Sposta la riga di `direction` (-1 su su, +1 giù).
+        Accetta sia Row sia Frame.
+        """
+        # Se passo un'istanza di Row, ricavo il frame interno
+        if isinstance(row_frame_or_row, Row):
+            target_frame = row_frame_or_row.frame
         else:
-            token += ch
-    if token:
-        out.append(token)
-    return [os.path.expanduser(p) for p in out]
+            target_frame = row_frame_or_row
+        idx = None
+        for i, row in enumerate(self._rows):
+            if row.frame is target_frame:
+                idx = i
+                break
+        if idx is None:
+            return
+        new_idx = idx + direction
+        if new_idx < 0 or new_idx >= len(self._rows):
+            return
+        self._rows[idx], self._rows[new_idx] = self._rows[new_idx], self._rows[idx]
+        for row in self._rows:
+            row.frame.pack_forget()
+        for row in self._rows:
+            row.frame.pack(fill="x", pady=2)
+
+    def _del_row(self, row_frame_or_row: tk.Frame | Row) -> None:
+        """
+        Rimuove la riga (e il Frame corrispondente) da self._rows.
+        Accetta sia Row sia Frame.
+        """
+        if isinstance(row_frame_or_row, Row):
+            target_frame = row_frame_or_row.frame
+        else:
+            target_frame = row_frame_or_row
+        idx = None
+        for i, row in enumerate(self._rows):
+            if row.frame is target_frame:
+                idx = i
+                break
+        if idx is None:
+            return
+        row = self._rows[idx]
+        row.frame.destroy()
+        del self._rows[idx]
+
+    def _validate(self, entry_src: PlaceholderEntry, entry_alt: PlaceholderEntry) -> None:
+        url = entry_src.get_value()
+        alt_val = entry_alt.get_value()
+        ok = True
+        if url:
+            try:
+                image_service.validate_url(url)
+            except Exception:
+                ok = False
+            if not alt_val:
+                ok = False
+        _apply_border(entry_src, ok)
+        _apply_border(entry_alt, ok)
+
+    def get_urls(self) -> List[str]:
+        return [row.entry_src.get_value() for row in self._rows]
+
+    def get_alts(self) -> List[str]:
+        return [row.entry_alt.get_value() for row in self._rows]

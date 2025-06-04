@@ -1,65 +1,96 @@
-# template_builder/step_image.py
-"""
-Helper puri per la gestione di StepImage:
-  • sort_steps
-  • swap_steps
-  • renumber_steps
-Mantengono P1-P5 e sono 100 % test-friendly.
-"""
 from __future__ import annotations
-
-from typing import List
-from .model import StepImage  # usa il dataclass già definito
+from typing import List, Sequence
+from .model import StepImage
 import re
-from html import unescape
-# ────────────────────────────────────────────────────────────────
-def _ensure_list(steps):
+
+def sort_steps(steps: List[StepImage]) -> List[StepImage]:
+    """Ordina in-place per attributo 'order' crescente e restituisce la lista"""
     if not isinstance(steps, list):
-        raise TypeError("steps must be a list")
+        raise TypeError("steps deve essere una lista di StepImage")
     for s in steps:
         if not isinstance(s, StepImage):
-            raise ValueError("steps list must contain StepImage items")
-
-# ----------------------------------------------------------------
-def sort_steps(steps: List[StepImage]) -> List[StepImage]:
-    """Ordina in-place per `order` ASC e ritorna la lista."""
-    _ensure_list(steps)
+            raise ValueError("steps deve contenere solo oggetti StepImage")
     steps.sort(key=lambda s: s.order)
     return steps
 
-# ----------------------------------------------------------------
 def swap_steps(steps: List[StepImage], i: int, j: int) -> List[StepImage]:
-    """Scambia elementi *i* e *j* (0-based)."""
-    _ensure_list(steps)
+    """Scambia due step (0-based) e restituisce la lista."""
+    if not isinstance(steps, list):
+        raise TypeError("steps deve essere una lista di StepImage")
     n = len(steps)
-    if i == j:
-        return steps
     if not (0 <= i < n and 0 <= j < n):
-        raise ValueError("swap indices out of range")
+        raise ValueError("indici fuori range")
     steps[i], steps[j] = steps[j], steps[i]
     return steps
 
-# ----------------------------------------------------------------
 def renumber_steps(steps: List[StepImage]) -> List[StepImage]:
-    """Riassegna order consecutivi (1…N) mantenendo l’ordine attuale."""
-    _ensure_list(steps)
+    """Riassegna order consecutivi (1..N) mantenendo l'ordine attuale."""
+    if not isinstance(steps, list):
+        raise TypeError("steps deve essere una lista di StepImage")
     for idx, step in enumerate(steps, start=1):
         step.order = idx
     return steps
 
-def _strip_html(text: str) -> str:
-    return re.sub("<[^<]+?>", "", unescape(text or "")).strip()
-
-def bind_steps(texts: list[str], images: list[str]) -> list[StepImage]:
-    """Combina liste testo / immagini in StepImage con alt derivato."""
+def bind_steps(
+    texts: Sequence[str],
+    images: Sequence[str],
+    alts: Sequence[str] | None = None,
+) -> List[StepImage]:
+    """
+    Combina liste di testi, immagini e (eventualmente) alts in una lista di StepImage.
+    Regole:
+    - Viene creato un StepImage solo se esistono contemporaneamente:
+      • testo (texts[i].strip() != "")
+      • URL immagine (images[i] != "")
+      • alt non vuoto (alts[i].strip() != "")
+    - Se manca alt mentre esistono testo e URL immagine, solleva ValueError subito,
+      con messaggio:
+      "Errore: l'immagine in posizione {i+1} non ha l'attributo ALT. Inserisci un testo alternativo all'immagine."
+    - Passi in cui testo.strip()=="" e images[i]=="" vengono ignorati senza errore.
+    """
+    steps: List[StepImage] = []
     max_len = max(len(texts), len(images))
-    steps: list[StepImage] = []
     for i in range(max_len):
-        t = texts[i]  if i < len(texts)  else ""
+        t = texts[i] if i < len(texts) else ""
         img = images[i] if i < len(images) else ""
-        alt = _strip_html(t) or (f"Step {i+1}" if img else "")
-        # se sia testo che img mancano ⇒ salta
+        alt = ""
+        if alts is not None and i < len(alts):
+            alt = alts[i]
+        # Se né testo né immagine → salto
         if not t.strip() and not img:
             continue
-        steps.append(StepImage(img=img, alt=alt, text=t, order=i+1))
+        # Se c'è URL immagine, allora serve anche testo e alt
+        if img:
+            if not t.strip():
+                # C'è immagine ma non c'è testo: non è passo ricetta valido → salto
+                continue
+            if not alt or not alt.strip():
+                # Manca alt → errore
+                position = i + 1
+                raise ValueError(
+                    f"Errore: l'immagine in posizione {position} non ha l'attributo ALT. "
+                    "Inserisci un testo alternativo all'immagine."
+                )
+            # Altrimenti posso costruire lo StepImage
+            step = StepImage(img=img, alt=alt.strip(), text=t, order=len(steps) + 1)
+            steps.append(step)
+        # Se non c'è URL immagine ma c'è testo, non genero nulla (solo immagine passo viene mostrata se c'è testo)
     return steps
+
+def steps_to_html(steps: List[StepImage]) -> str:
+    """
+    Genera HTML per una lista di StepImage in <ol><li>... structure.
+    Se step.img è non vuoto, include <img src="..." alt="...">.
+    """
+    lines: list[str] = []
+    lines.append("<ol>")
+    for step in steps:
+        lines.append("  <li>")
+        if step.img:
+            escaped_alt = step.alt.replace('"', "&quot;")
+            lines.append(f'    <img src="{step.img}" alt="{escaped_alt}">')
+        for line in step.text.splitlines():
+            lines.append(f"    {line}")
+        lines.append("  </li>")
+    lines.append("</ol>")
+    return "\n".join(lines)

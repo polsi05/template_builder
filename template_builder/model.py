@@ -62,25 +62,6 @@ class StepImage:
         if self.img and not self.alt:
             raise ValueError("Alt text is required if image is provided")
 
-    # ───────────────── serialization helpers ─────────────────
-    def to_dict(self) -> dict[str, str]:
-        """Rappresentazione JSON-safe di StepImage (usata da storage v2)."""
-        return {
-            "IMG_SRC": self.img,
-            "IMG_ALT": self.alt,
-            "TEXT":    self.text,
-            "ORDER":   self.order,
-        }
-
-    @classmethod
-    def from_dict(cls, d: dict[str, str]) -> "StepImage":
-        """Ricostruisce un StepImage da dict serializzato."""
-        return cls(
-            img   = d.get("IMG_SRC", ""),
-            alt   = d.get("IMG_ALT", ""),
-            text  = d.get("TEXT", ""),
-            order = int(d.get("ORDER", 0) or 0),
-        )
 
 # ────────────────────────────────────────────────
 # GALLERY ROW  (max 3 images)

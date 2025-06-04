@@ -1,3 +1,4 @@
+# template_builder/builder_core.py
 from __future__ import annotations
 
 import importlib
@@ -7,7 +8,7 @@ import types
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
 
-# Optional safe imports for GUI modules and services
+# Optional safe imports per GUI e servizi
 def _safe(name: str) -> types.ModuleType:
     try:
         return importlib.import_module(name)
@@ -18,7 +19,7 @@ _tk          = _safe("tkinter")
 _ttk         = _safe("tkinter.ttk")
 _widgets_mod = _safe("template_builder.widgets")
 _services    = _safe("template_builder.services.storage")
-_stepimg_mod = _safe("template_builder.step_image")      # ⇦ NUOVO
+_stepimg_mod = _safe("template_builder.step_image")
 _preview_mod = _safe("template_builder.infrastructure.preview_engine")
 _ui_utils    = _safe("template_builder.infrastructure.ui_utils")
 
@@ -40,9 +41,9 @@ show_error   = getattr(_ui_utils, "show_error",   lambda *a, **k: None)
 styled_option_menu = getattr(_ui_utils, "styled_option_menu", None)
 styled_spinbox     = getattr(_ui_utils, "styled_spinbox", None)
 StyledText         = getattr(_ui_utils, "StyledText", None)
-bind_steps_fn = getattr(_stepimg_mod, "bind_steps", None)   # ⇦ NUOVO
+bind_steps_fn = getattr(_stepimg_mod, "bind_steps", None)
 
-# Directories for templates and exports (ensure existence)
+# Directory per template e export (assicurarsi che esistano)
 _BASE_DIR        = Path(__file__).resolve().parent
 TEMPLATE_FOLDER  = _BASE_DIR / "templates"
 EXPORT_FOLDER    = _BASE_DIR / "export"
@@ -52,7 +53,7 @@ for p in (TEMPLATE_FOLDER, EXPORT_FOLDER):
     except Exception:
         pass
 
-# Import text service for placeholder parsing and formatting
+# Import text service per parsing e formattazione placeholder
 _text_mod = _safe("template_builder.services.text")
 extract_placeholders_fn = getattr(_text_mod, "extract_placeholders", lambda src: set())
 smart_paste_fn          = getattr(_text_mod, "smart_paste", lambda raw: [raw] if isinstance(raw, str) else [str(x) for x in raw])
@@ -73,26 +74,26 @@ class TemplateBuilderApp:
         self.root = tk.Tk() if self.enable_gui and tk else None
         self._undo = UndoRedoStack()
         self._state: Dict[str, Any] = {}
-        # Dynamic fields and image lists
+        # Campi dinamici e liste di immagini
         self.fields: Dict[str, Any] = {}
         self.img_desc = self.img_rec = self.img_step = self.img_other = None
         self.preview_engine = None
-        # Image columns variables
+        # Variabili per colonne immagini
         self.cols_desc = None
         self.cols_rec = None
 
         if self.root:
-            # Apply dark theme if available
+            # Applica tema scuro se disponibile
             try:
                 from ttkbootstrap import Style
                 Style('darkly')
             except Exception:
                 pass
-            # Build UI components
+            # Costruisci componenti UI
             self._build_ui()
             self._build_menu()
             self._bind_global_shortcuts()
-            # Load templates and auto-select first
+            # Carica template e seleziona il primo
             self._load_templates()
 
     def quick_save(self, *_: Any) -> None:
@@ -100,11 +101,11 @@ class TemplateBuilderApp:
         quick_save_fn(self._state)
 
     def edit_undo(self, *_: Any) -> None:
-        """Alias for undo (for menu/shortcuts)."""
+        """Alias per undo (menu/shortcut)."""
         self.undo()
 
     def edit_redo(self, *_: Any) -> None:
-        """Alias for redo (for menu/shortcuts)."""
+        """Alias per redo (menu/shortcut)."""
         self.redo()
 
     def undo(self, *_: Any) -> None:
@@ -132,44 +133,42 @@ class TemplateBuilderApp:
             self._state = {}
 
     def update_preview(self) -> None:
-        """Render current state into preview (no-op if head-less)."""
+        """Render current state into preview (no-op se head-less)."""
         if hasattr(self, "preview_engine") and self.preview_engine:
             html: Optional[str] = None
-            # Use Jinja engine if available and template loaded
             if export_html_fn and getattr(self, "template_path", None):
                 try:
                     html = export_html_fn(self._collect(), self.template_path)
                 except Exception:
                     html = None
             if html is None:
-                # Fallback to simple Title+Body HTML (or placeholder if none)
+                # Fallback a simple Title+Body HTML (o placeholder se nulla)
                 html = self._render_html() or "<!-- Preview not available -->"
             self.preview_engine.render(html)
 
     def audit_placeholders(self) -> List[str]:
         """Audit segnaposti sul template grezzo e mostra i risultati."""
-        # estrai segnaposti dal template sorgente
+        # Estrai segnaposti dal template sorgente
         placeholders = set()
         if getattr(self, "template_src", None):
             placeholders = set(extract_placeholders_fn(self.template_src))
 
-        # individua i gruppi immagini (gruppi con SRC+ALT)
+        # Individua i gruppi immagini (gruppi con SRC+ALT)
         img_grps = {
             ph[:-4]
             for ph in placeholders
             if ph.endswith("_SRC") and f"{ph[:-4]}_ALT" in placeholders
         }
 
-        # suddividi i gruppi nelle categorie (solo per compatibilità futura)
-        desc_groups  = {g for g in img_grps if "DESC"   in g.upper()}
-        rec_groups   = {g for g in img_grps if "REC"    in g.upper()}
+        # Suddividi i gruppi nelle categorie (solo per compatibilità futura)
+        desc_groups  = {g for g in img_grps if "DESC" in g.upper()}
+        rec_groups   = {g for g in img_grps if "REC"  in g.upper()}
         other_groups = img_grps - desc_groups - rec_groups
 
         state_keys = set(self._state.keys())
         audit_lines: List[str] = []
         for ph in sorted(placeholders):
             grp = ph.rsplit("_", 1)[0]
-            # ph esplicito o gruppo (SRC/ALT) considerato coperto
             handled = (
                 ph in state_keys
                 or grp in desc_groups
@@ -500,7 +499,7 @@ class TemplateBuilderApp:
     def _collect(self) -> Dict[str, Any]:
         """Collect current inputs into context dict."""
         data: Dict[str, Any] = {}
-        # Text fields
+        # Campi di testo
         for k, w in self.fields.items():
             try:
                 if hasattr(w, "render_html"):
@@ -513,33 +512,39 @@ class TemplateBuilderApp:
                     data[k] = w.get().strip()
             except Exception:
                 data[k] = ""
-        # Image lists and columns
-        data["IMAGES_DESC"] = (self.img_desc.get_urls()
-                               if self.img_desc and hasattr(self.img_desc, "get_urls") else [])
-        data["IMAGES_REC"]  = (self.img_rec.get_urls()
-                               if self.img_rec and hasattr(self.img_rec, "get_urls") else [])
-        data["IMAGES_STEP"] = (self.img_step.get_urls()
-                               if self.img_step and hasattr(self.img_step, "get_urls") else [])
+        # Liste di immagini e colonne
+        data["IMAGES_DESC"] = (
+            self.img_desc.get_urls() if self.img_desc and hasattr(self.img_desc, "get_urls") else []
+        )
+        data["IMAGES_REC"]  = (
+            self.img_rec.get_urls() if self.img_rec and hasattr(self.img_rec, "get_urls") else []
+        )
+        data["IMAGES_STEP"] = (
+            self.img_step.get_urls() if self.img_step and hasattr(self.img_step, "get_urls") else []
+        )
         data["COLS_DESC"]   = int(self.cols_desc.get()) if self.cols_desc else 1
-        data["COLS_REC"]    = int(self.cols_rec.get()) if self.cols_rec else 1
+        data["COLS_REC"]    = int(self.cols_rec.get())  if self.cols_rec  else 1
 
-        # ───────── StepImage binding & ALT placeholder ─────────
+        # ───────── StepImage binding & ALT place (Batch-1 compat) ─────────
         try:
             from template_builder.step_image import bind_steps
             txts = [data.get(f"STEP{i}", "") for i in range(1, 10)]
-            steps = bind_steps(txts, data["IMAGES_STEP"])
+            # Ora passi anche l’argomento alts=None (per compatibilità)
+            steps = bind_steps(txts, data["IMAGES_STEP"], None)
             data["STEPS"] = [s.to_dict() for s in steps]
             for s in steps:
                 data[f"STEP{s.order}_IMG_ALT"] = s.alt
         except Exception:
-            # se modulo mancante, ignora (modalità headless)
+            # modulo mancante o errore → ignora (headless)
             pass
-        # ───────── StepImage binding & ALT placeholder (Batch-2 F5) ─────────
+
+        # ───────── StepImage binding & ALT placeholder (Batch-2 F5/F6) ─────────
         if callable(bind_steps_fn):
             try:
-                txts  = [self._state.get(f"STEP{i}", "") for i in range(1, 10)]
+                txts   = [self._state.get(f"STEP{i}", "") for i in range(1, 10)]
                 images = data["IMAGES_STEP"] or list(self._state.get("IMAGES_STEP", []))
-                steps  = bind_steps_fn(txts, images)
+                # Non ci sono alts provenienti dal widget in headless, quindi None
+                steps  = bind_steps_fn(txts, images, None)
                 # Serializza in dict (JSON-safe)
                 data["STEPS"] = [s.to_dict() for s in steps]
                 # Propaga ALT per placeholder legacy
@@ -549,14 +554,34 @@ class TemplateBuilderApp:
                 data["STEPS"] = []
         else:
             data["STEPS"] = []
-        # ────────────────────────────────────────────────────────────────────        
+
         return data
 
     def _render_html(self) -> Optional[str]:
-        """Simple fallback HTML using TITLE/BODY (if present)."""
+        """Fallback HTML usando TITLE/BODY e, se possibile, passi per passo."""
         title = str(self._state.get("TITLE", "") or "")
         body  = str(self._state.get("BODY", "") or "")
-        return f"<h1>{title}</h1>\n{body}" if (title or body) else None
+        base_html = ""
+        if title or body:
+            base_html = f"<h1>{html.escape(title)}</h1>\n{body}"
+
+        # Aggiunge sezione passi in fallback senza Jinja2
+        steps_html = ""
+        try:
+            step_image_mod = importlib.import_module("template_builder.step_image")
+            bind_fn = getattr(step_image_mod, "bind_steps", None)
+            to_html_fn = getattr(step_image_mod, "steps_to_html", None)
+            if bind_fn and to_html_fn:
+                texts  = [str(self._state.get(f"STEP{i}", "") or "") for i in range(1, 10)]
+                images = list(self._state.get("IMAGES_STEP", [])) if self._state.get("IMAGES_STEP") else []
+                steps_list = bind_fn(texts, images, None)
+                steps_html  = to_html_fn(steps_list)
+        except Exception:
+            steps_html = ""
+
+        if steps_html:
+            base_html += "\n" + steps_html
+        return base_html or None
 
     def __repr__(self) -> str:
         return f"<TemplateBuilderApp gui={self.enable_gui!r} state={len(self._state)} keys>"
