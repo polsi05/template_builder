@@ -13,13 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
       # ────────────────────────────────────────────────
-      #  1) Installare Xvfb + Tkinter per Python 3.10
+      #  1) Installare Xvfb + Tkinter per il Python di sistema
       # ────────────────────────────────────────────────
       - name: Install Xvfb and python3-tk
         run: |
@@ -28,15 +23,19 @@ jobs:
           Xvfb :99 -screen 0 1024x768x24 &
         # DISPLAY è già esportato a livello di job
 
-      - name: Install project
+      # ────────────────────────────────────────────────
+      #  2) Installare le dipendenze col pip del Python di sistema
+      # ────────────────────────────────────────────────
+      - name: Install project dependencies
         run: |
-          pip install -e ".[dnd,webpreview,test]"
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -e ".[dnd,webpreview,test]"
 
       # ────────────────────────────────────────────────
-      #  2) Eseguiamo i test (ora DISPLAY=:99 è attivo ed è presente Tk/Ttk)
+      #  3) Eseguiamo i test con python3 (TK e TTK disponibili)
       # ────────────────────────────────────────────────
       - name: Run tests
-        run: pytest -q
+        run: python3 -m pytest -q
 
       - name: Legacy coverage stub
-        run: python scripts/legacy_coverage_check.py
+        run: python3 scripts/legacy_coverage_check.py
