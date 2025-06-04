@@ -13,13 +13,22 @@ jobs:
         with:
           python-version: '3.12'
 
+      # ─── Nuovo step: installazione e avvio di Xvfb ───
+      - name: Install Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          Xvfb :99 -screen 0 1024x768x24 &
+        env:
+          DISPLAY: :99
+
       - name: Install project
         run: |
           pip install -e ".[dnd,webpreview,test]"
 
       - name: Run tests
         env:
-          DISPLAY: ""
+          DISPLAY: :99
         run: pytest -q
 
       - name: Legacy coverage stub
