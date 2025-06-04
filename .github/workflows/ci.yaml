@@ -1,32 +1,39 @@
+# .github/workflows/ci.yaml  – versione aggiornata
+
 name: CI
 
 on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest          # oggi è ubuntu-24.04 (“noble”)
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
+      # --- Python 3.12 (default in 24.04) -------------------------------
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Install Tkinter and Xvfb
+      # --- Dipendenze di sistema per Tkinter + Xvfb --------------------
+      - name: Install system packages (Tk + Xvfb)
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3.10-tk xvfb
+          sudo apt-get install -y python3-tk xvfb
 
+      # --- Dipendenze Python del progetto ------------------------------
       - name: Install project
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -e ".[dnd,webpreview,test]"
 
-      - name: Run tests under Xvfb
+      # --- Test in headless -------------------------------------------
+      - name: Run tests (headless)
         run: |
           xvfb-run -s "-screen 0 1024x768x24" pytest -q
 
+      # --- Stub legacy coverage ---------------------------------------
       - name: Legacy coverage stub
         run: python scripts/legacy_coverage_check.py
