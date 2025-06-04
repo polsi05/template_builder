@@ -11,9 +11,15 @@ class TestSortableImageRepeaterFieldAlt(unittest.TestCase):
         # Creiamo una root Tkinter; se non c'è DISPLAY, usiamo tk.Tcl() come fallback
         try:
             self.root = tk.Tk()
-            self.root.withdraw()  # non mostriamo la finestra
+            self.root.withdraw()            # non mostriamo la finestra
+
+            # Verifica se il comando Ttk di base esiste
+            if "ttk::frame" not in self.root.tk.call("info", "commands"):
+                raise tk.TclError("Ttk assente")
+
         except tk.TclError:
-            self.skipTest("Tkinter/Display non disponibile")
+            # Nessun display **o** nessuna Ttk: salta l’intera suite
+            self.skipTest("Tkinter/Ttk non disponibile nel runner")
         self.field = SortableImageRepeaterField(self.root)
 
     def tearDown(self) -> None:
