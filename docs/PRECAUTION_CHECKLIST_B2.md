@@ -1,7 +1,7 @@
 
 ---
 
-## 5. `PRECAUTION_CHECKLIST_B2.md`
+## 5. `PRECAUTION_CHECKLIST_B2.md` da rivedere
 
 ```markdown
 # 🛡️ PRECAUTION CHECKLIST – Batch 2

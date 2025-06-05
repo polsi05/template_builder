@@ -1,4 +1,4 @@
-# 🔄 IMPACT MATRIX – Batch 2
+# 🔄 IMPACT MATRIX – Batch 2- poi lo completo questo è vecchio ho cambiato idea
 
 | Entità / Modulo | Importa da | Importato da | Effetti collaterali | Precauzione |
 |-----------------|-----------|--------------|---------------------|-------------|
