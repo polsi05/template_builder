@@ -1,3 +1,4 @@
+# .github/workflows/ci.yaml  — versione robusta
 name: CI
 
 on: [push, pull_request]
@@ -5,22 +6,32 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      # Python 3.12 è già l’interprete di default su ubuntu-24.04
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # Pacchetti di sistema indispensabili per Tk/Ttk + display virtuale
+      - name: Install Tk + Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb   # python3-tk include ttk 
+
+      # Dipendenze Python del progetto
       - name: Install project
         run: |
+          python -m pip install --upgrade pip
           pip install -e ".[dnd,webpreview,test]"
 
+      # Test in headless (X virtuale)
       - name: Run tests
-        env:
-          DISPLAY: ""
-        run: pytest -q
+        run: |
+          xvfb-run -s "-screen 0 1024x768x24" pytest -q
 
       - name: Legacy coverage stub
         run: python scripts/legacy_coverage_check.py
