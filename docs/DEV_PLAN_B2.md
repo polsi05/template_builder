@@ -1,4 +1,4 @@
-# ✅ ROADMAP – Batch 2 – Rifattorizzazione template_builder
+# ✅ ROADMAP – Batch 2 – Rifattorizzazione template_builder - da vedere in caso lo cambio
 
 > **Goal generale**  
 > Portare nello stato “definitivo” i modelli dati (Hero, StepImage, GalleryRow) e
