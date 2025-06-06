@@ -1,0 +1,95 @@
+{
+  "template_builder.__init__": [
+    "main"
+  ],
+  "template_builder.widgets": [
+    "PlaceholderEntry",
+    "PlaceholderMultiTextField",
+    "PlaceholderSpinbox",
+    "SortableImageRepeaterField",
+    "get_raw",
+    "get_urls",
+    "get_value",
+    "get_value",
+    "hide",
+    "on_enter",
+    "on_leave",
+    "render_html",
+    "render_html"
+  ],
+  "template_builder.model": [
+    "GalleryRow",
+    "Hero",
+    "StepImage",
+    "fallback_html",
+    "fallback_html",
+    "from_dict",
+    "to_dict",
+    "to_dict",
+    "to_jinja_ctx"
+  ],
+  "template_builder.step_image": [
+    "bind_steps",
+    "renumber_steps",
+    "sort_steps",
+    "steps_to_html",
+    "swap_steps"
+  ],
+  "template_builder.__main__": [
+    "main"
+  ],
+  "template_builder.filters": [
+    "steps_bind"
+  ],
+  "template_builder.builder_core": [
+    "TemplateBuilderApp",
+    "audit_placeholders",
+    "edit_redo",
+    "edit_undo",
+    "load_recipe",
+    "quick_save",
+    "redo",
+    "reload_template",
+    "undo",
+    "update_preview"
+  ],
+  "template_builder.infrastructure.preview_engine": [
+    "PreviewEngine",
+    "collect_context",
+    "render"
+  ],
+  "template_builder.infrastructure.validators": [
+    "ImageValidationError",
+    "validate_image_url"
+  ],
+  "template_builder.infrastructure.ui_utils": [
+    "bind_mousewheel",
+    "show_info"
+  ],
+  "template_builder.services.text": [
+    "auto_format",
+    "extract_placeholders",
+    "get_field_help",
+    "images_to_html",
+    "smart_paste"
+  ],
+  "template_builder.services.storage": [
+    "UndoRedoStack",
+    "export_html",
+    "load_recipe",
+    "push",
+    "quick_save",
+    "redo",
+    "undo"
+  ],
+  "template_builder.services.images": [
+    "encode_file_to_data_uri",
+    "fetch_metadata",
+    "generate_placeholders",
+    "guess_grid",
+    "images_to_html",
+    "paths_to_html_grid",
+    "smart_paste_images",
+    "validate_url"
+  ]
+}

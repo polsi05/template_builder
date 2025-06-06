@@ -1,0 +1,125 @@
+{
+  "legacy.template_builder_legacy": [
+    "__future__",
+    "jinja2",
+    "pathlib",
+    "preview_engine",
+    "tkinter",
+    "ttkbootstrap",
+    "typing",
+    "ui_utils",
+    "validators"
+  ],
+  "legacy.preview_engine_legacy": [
+    "cefpython3",
+    "tkinter",
+    "tkinterweb",
+    "ui_utils"
+  ],
+  "legacy.test_placeholders_legacy": [
+    "ui_utils"
+  ],
+  "legacy.validators_legacy": [
+    "PIL",
+    "io"
+  ],
+  "legacy.ui_utils_legacy": [
+    "tkinter",
+    "ttkbootstrap",
+    "ttkbootstrap.dialogs.dialogs",
+    "typing"
+  ],
+  "template_builder.__init__": [
+    "importlib",
+    "step_image",
+    "template_builder.services.storage"
+  ],
+  "template_builder.widgets": [
+    "__future__",
+    "services",
+    "tkinter",
+    "tkinterdnd2",
+    "typing"
+  ],
+  "template_builder.model": [
+    "__future__",
+    "dataclasses",
+    "html",
+    "typing"
+  ],
+  "template_builder.step_image": [
+    "__future__",
+    "html",
+    "model",
+    "typing"
+  ],
+  "template_builder.__main__": [
+    "builder_core"
+  ],
+  "template_builder.filters": [
+    "jinja2"
+  ],
+  "template_builder.builder_core": [
+    "__future__",
+    "pathlib",
+    "template_builder.step_image",
+    "ttkbootstrap",
+    "typing"
+  ],
+  "template_builder.legacy.template_builder_legacy": [
+    "__future__",
+    "jinja2",
+    "pathlib",
+    "preview_engine",
+    "tkinter",
+    "ttkbootstrap",
+    "typing",
+    "ui_utils",
+    "validators"
+  ],
+  "template_builder.legacy.preview_engine_legacy": [
+    "cefpython3",
+    "tkinter",
+    "tkinterweb",
+    "ui_utils"
+  ],
+  "template_builder.legacy.validators_legacy": [
+    "PIL",
+    "io"
+  ],
+  "template_builder.legacy.ui_utils_legacy": [
+    "tkinter",
+    "ttkbootstrap",
+    "ttkbootstrap.dialogs.dialogs",
+    "typing"
+  ],
+  "template_builder.infrastructure.preview_engine": [
+    "__future__",
+    "typing"
+  ],
+  "template_builder.services.__init__": [
+    "images",
+    "storage",
+    "text"
+  ],
+  "template_builder.services.text": [
+    "__future__",
+    "assets",
+    "typing"
+  ],
+  "template_builder.services.storage": [
+    "__future__",
+    "jinja2",
+    "pathlib",
+    "template_builder.step_image",
+    "typing"
+  ],
+  "template_builder.services.images": [
+    "PIL",
+    "__future__",
+    "assets",
+    "infrastructure.validators",
+    "text",
+    "typing"
+  ]
+}

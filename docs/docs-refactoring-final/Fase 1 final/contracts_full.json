@@ -1,0 +1,225 @@
+{
+  "legacy.template_builder_legacy": [
+    "BuilderApp",
+    "ImageRepeaterField",
+    "MultiTextField",
+    "add_row",
+    "auto_format",
+    "extract_placeholders",
+    "find_canvas",
+    "get_rows",
+    "images_to_html",
+    "reload_template",
+    "render_html",
+    "smart_paste",
+    "steps_bind",
+    "update_preview"
+  ],
+  "legacy.preview_engine_legacy": [
+    "CefRenderer",
+    "ExternalRenderer",
+    "PreviewEngine",
+    "RendererBackend",
+    "TkWebRenderer",
+    "dispose",
+    "dispose",
+    "dispose",
+    "dispose",
+    "dispose",
+    "init_frame",
+    "load",
+    "load",
+    "load",
+    "load",
+    "render",
+    "setup",
+    "setup",
+    "setup",
+    "setup"
+  ],
+  "legacy.test_placeholders_legacy": [
+    "TestPlaceholders",
+    "setUp",
+    "tearDown",
+    "test_entry_focus_in_out",
+    "test_entry_placeholder_initial",
+    "test_spinbox_focus_in_out",
+    "test_spinbox_placeholder_initial"
+  ],
+  "legacy.validators_legacy": [
+    "ImageValidationError",
+    "validate_image_url"
+  ],
+  "legacy.ui_utils_legacy": [
+    "PlaceholderEntry",
+    "PlaceholderMultiTextField",
+    "StyledText",
+    "bind",
+    "config",
+    "delete",
+    "get",
+    "insert",
+    "render_html",
+    "show_error",
+    "show_info",
+    "show_warning",
+    "smart_paste",
+    "styled_option_menu",
+    "styled_spinbox"
+  ],
+  "scripts.legacy_coverage_check": [
+    "main"
+  ],
+  "template_builder.__init__": [
+    "main"
+  ],
+  "template_builder.widgets": [
+    "PlaceholderEntry",
+    "PlaceholderMultiTextField",
+    "PlaceholderSpinbox",
+    "SortableImageRepeaterField",
+    "get_raw",
+    "get_urls",
+    "get_value",
+    "get_value",
+    "hide",
+    "on_enter",
+    "on_leave",
+    "render_html",
+    "render_html"
+  ],
+  "template_builder.model": [
+    "GalleryRow",
+    "Hero",
+    "StepImage",
+    "fallback_html",
+    "fallback_html",
+    "from_dict",
+    "to_dict",
+    "to_dict",
+    "to_jinja_ctx"
+  ],
+  "template_builder.step_image": [
+    "bind_steps",
+    "renumber_steps",
+    "sort_steps",
+    "steps_to_html",
+    "swap_steps"
+  ],
+  "template_builder.__main__": [
+    "main"
+  ],
+  "template_builder.filters": [
+    "steps_bind"
+  ],
+  "template_builder.builder_core": [
+    "TemplateBuilderApp",
+    "audit_placeholders",
+    "edit_redo",
+    "edit_undo",
+    "load_recipe",
+    "quick_save",
+    "redo",
+    "reload_template",
+    "undo",
+    "update_preview"
+  ],
+  "template_builder.legacy.template_builder_legacy": [
+    "BuilderApp",
+    "ImageRepeaterField",
+    "MultiTextField",
+    "add_row",
+    "auto_format",
+    "extract_placeholders",
+    "find_canvas",
+    "get_rows",
+    "images_to_html",
+    "reload_template",
+    "render_html",
+    "smart_paste",
+    "steps_bind",
+    "update_preview"
+  ],
+  "template_builder.legacy.preview_engine_legacy": [
+    "CefRenderer",
+    "ExternalRenderer",
+    "PreviewEngine",
+    "RendererBackend",
+    "TkWebRenderer",
+    "dispose",
+    "dispose",
+    "dispose",
+    "dispose",
+    "dispose",
+    "init_frame",
+    "load",
+    "load",
+    "load",
+    "load",
+    "render",
+    "setup",
+    "setup",
+    "setup",
+    "setup"
+  ],
+  "template_builder.legacy.validators_legacy": [
+    "ImageValidationError",
+    "validate_image_url"
+  ],
+  "template_builder.legacy.ui_utils_legacy": [
+    "PlaceholderEntry",
+    "PlaceholderMultiTextField",
+    "StyledText",
+    "bind",
+    "config",
+    "delete",
+    "get",
+    "insert",
+    "render_html",
+    "show_error",
+    "show_info",
+    "show_warning",
+    "smart_paste",
+    "styled_option_menu",
+    "styled_spinbox"
+  ],
+  "template_builder.infrastructure.preview_engine": [
+    "PreviewEngine",
+    "collect_context",
+    "render"
+  ],
+  "template_builder.infrastructure.validators": [
+    "ImageValidationError",
+    "validate_image_url"
+  ],
+  "template_builder.infrastructure.ui_utils": [
+    "bind_mousewheel",
+    "show_info"
+  ],
+  "template_builder.services.text": [
+    "auto_format",
+    "extract_placeholders",
+    "get_field_help",
+    "images_to_html",
+    "smart_paste"
+  ],
+  "template_builder.services.storage": [
+    "UndoRedoStack",
+    "export_html",
+    "load_recipe",
+    "push",
+    "quick_save",
+    "redo",
+    "undo"
+  ],
+  "template_builder.services.images": [
+    "encode_file_to_data_uri",
+    "fetch_metadata",
+    "generate_placeholders",
+    "guess_grid",
+    "images_to_html",
+    "paths_to_html_grid",
+    "smart_paste_images",
+    "validate_url"
+  ]
+}

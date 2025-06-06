@@ -1,0 +1,11 @@
+{
+  "template_builder.__init__": [
+    "template_builder.services.storage"
+  ],
+  "template_builder.builder_core": [
+    "template_builder.step_image"
+  ],
+  "template_builder.services.storage": [
+    "template_builder.step_image"
+  ]
+}
