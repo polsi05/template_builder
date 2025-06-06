@@ -1,0 +1,44 @@
+**requirements.txt**
+
+```text
+# =============================================================================
+# Template Builder - requirements.txt
+# =============================================================================
+# Questo file elenca tutte le dipendenze obbligatorie e opzionali, 
+# incluse quelle necessarie per test e ambienti headless.
+#
+# Per installare:
+#   pip install -r requirements.txt
+#
+# Se si desidera installare solo le dipendenze di runtime obbligatorie:
+#   pip install Jinja2>=3.0 Pillow>=8.0
+#
+# =============================================================================
+# 1. Core dependencies (obbligatorie)
+# =============================================================================
+Jinja2>=3.0
+Pillow>=8.0
+
+# =============================================================================
+# 2. Optional dependencies for GUI enhancements
+# =============================================================================
+# Drag & Drop delle immagini
+tkinterdnd2>=0.3
+
+# Anteprima HTML embedded
+tkinterweb>=0.4
+
+# Tema “darkly” (se installato)
+ttkbootstrap>=0.5
+
+# =============================================================================
+# 3. Development / Test / Headless environment dependencies
+# =============================================================================
+pytest>=6.0
+pytest-xvfb>=0.3        # Permette test GUI in headless (Xvfb)
+flake8>=3.9             # Linter PEP8
+black>=22.0             # Formatter
+coverage>=5.5           # Code coverage
+# =======================================================================
+# Fine di requirements.txt
+# =======================================================================
