@@ -1,60 +1,189 @@
-# Template Builder 🖌️
+# Template Builder
 
-Toolkit GUI in Python per creare template HTML e email marketing. Offre un'interfaccia moderna basata su Tkinter con **anteprima live**, supporto undo/redo e gestione automatica delle immagini.
+    **Template Builder** è un toolkit GUI in Python 3.10+ per creare agevolmente **template HTML** (ad es. campagne email) con anteprima live, gestione immagini intuitiva, undo/redo e altro.
 
-## Funzionalità principali
+---
 
-| Funzione                                | Extra req.                     | Fallback |
-|-----------------------------------------|--------------------------------|---------|
-| Anteprima HTML integrata (`PreviewEngine`) | `tkinterweb` per rendering web | testo a scorrimento |
-| Undo/Redo tramite scorciatoie           | —                              | — |
-| Drag & Drop immagini su ogni campo URL  | `tkinterdnd2` + `tkdnd`        | pulsanti “Add” |
-| Validazione URL immagini in tempo reale | —                              | bordi disattivati |
-| Tooltip contestuali on‑hover            | —                              | nessuno |
+## Struttura del Progetto
 
-## Installazione
+    ```text
+    template_builder/
+    ├─ __init__.py          # Espone TemplateBuilderApp e funzione main()
+    ├─ __main__.py          # Entry-point CLI: avvia l'app
+    ├─ assets.py            # Costanti globali (regex segnaposto, colori, cartella di history)
+    ├─ builder_core.py      # Controller principale (TemplateBuilderApp)
+    ├─ filters.py           # Filtri Jinja2 (stub `steps_bind`)
+    ├─ model.py             # Dataclass di dominio: Hero, StepImage, GalleryRow
+    ├─ step_image.py        # Funzioni helper per “step-immagine”
+    ├─ widgets.py           # Widget Tkinter personalizzati (placeholder, repeater immagini, tooltip)
+    ├─ services/            # Servizi “puri” (senza GUI)
+    │  ├─ __init__.py       # Re-export API di servizi
+    │  ├─ images.py         # Gestione immagini: griglie, placeholder, Data-URI, smart-paste
+    │  ├─ text.py           # Manipolazione testo: smart-paste, auto-format, estrazione placeholder
+    │  └─ storage.py        # Persistenza JSON, migrazione v1→v2, export HTML, Undo/Redo
+    ├─ infrastructure/      # Wrapper e utilità (preview HTML, GUI utils, validator)
+    │  ├─ __init__.py
+    │  ├─ preview_engine.py # `PreviewEngine`: anteprima HTML con `tkinterweb` o fallback
+    │  ├─ ui_utils.py       # Utility GUI generali (popup, centrare finestre, bind mousewheel)
+    │  └─ validators.py     # Validatori campi (URL, email, date, non-vuoto)
+    ├─ templates/           # Template Jinja2 di esempio per preview/esportazione
+    └─ legacy/              # Codice monolitico legacy (solo a scopo di riferimento)
 
-Richiede Python ≥3.9.
+    tests/                   # Suite Pytest per moduli business, widget, servizi
 
-```bash
-# installazione base (Tkinter già incluso nei pacchetti standard)
-pip install template_builder
+### struttura ad albero della cartella project-root/
 
-# componenti opzionali: drag&drop e web preview
-pip install "template_builder[dnd,webpreview]"
-```
-Per contribuire al progetto è consigliato clonare il repository ed eseguire:
+    ├── ARCHITECTURE.md
+    ├── CHANGELOG.md
+    ├── docs
+    │   ├── DEV_PLAN_B2.md
+    │   ├── IMPACT_MATRIX_B2.md
+    │   ├── INTEGRATION_GUIDE_B2.md
+    │   ├── legacy_issues.md
+    │   ├── MODULE_PROPOSAL_GalleryRow.md
+    │   ├── PRECAUTION_CHECKLIST_B2.md
+    │   └── project-files.txt
+    ├── legacy
+    │   ├── __pycache__
+    │   │   ├── template_builder.cpython-313.pyc
+    │   │   ├── test_placeholders_legacy.cpython-313-pytest-8.3.5.pyc
+    │   │   ├── test_placeholders.cpython-313-pytest-8.3.5.pyc
+    │   │   └── ui_utils.cpython-313.pyc
+    │   ├── mapping_template_builder_legacy.csv
+    │   ├── preview_engine_legacy.py
+    │   ├── template_builder_legacy.py
+    │   ├── test_placeholders_legacy.py
+    │   ├── ui_utils_legacy.py
+    │   └── validators_legacy.py
+    ├── path
+    ├── project-files.txt
+    ├── pyproject.toml
+    ├── pytest.ini
+    ├── README.md
+    ├── scripts
+    │   └── legacy_coverage_check.py
+    ├── template_builder
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   ├── __pycache__
+    │   │   ├── __init__.cpython-313.pyc
+    │   │   ├── __main__.cpython-313.pyc
+    │   │   ├── assets.cpython-313.pyc
+    │   │   ├── builder_core.cpython-313.pyc
+    │   │   ├── filters.cpython-313.pyc
+    │   │   ├── model.cpython-313.pyc
+    │   │   ├── step_image.cpython-313.pyc
+    │   │   └── widgets.cpython-313.pyc
+    │   ├── assets.py
+    │   ├── builder_core.py
+    │   ├── data
+    │   ├── export
+    │   ├── filters.py
+    │   ├── infrastructure
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   │   ├── __init__.cpython-313.pyc
+    │   │   │   ├── preview_engine.cpython-313.pyc
+    │   │   │   ├── ui_utils.cpython-313.pyc
+    │   │   │   └── validators.cpython-313.pyc
+    │   │   ├── init.py
+    │   │   ├── preview_engine.py
+    │   │   ├── ui_utils.py
+    │   │   └── validators.py
+    │   ├── legacy
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   │   ├── __init__.cpython-313.pyc
+    │   │   │   └── template_builder_legacy.cpython-313.pyc
+    │   │   ├── preview_engine_legacy.py
+    │   │   ├── template_builder_legacy.py
+    │   │   ├── ui_utils_legacy.py
+    │   │   └── validators_legacy.py
+    │   ├── model.py
+    │   ├── services
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   │   ├── __init__.cpython-313.pyc
+    │   │   │   ├── images.cpython-313.pyc
+    │   │   │   ├── step_image.cpython-313.pyc
+    │   │   │   ├── storage.cpython-313.pyc
+    │   │   │   └── text.cpython-313.pyc
+    │   │   ├── images.py
+    │   │   ├── storage.py
+    │   │   └── text.py
+    │   ├── step_image.py
+    │   ├── templates
+    │   │   ├── ebay_template_modern_dynamicv2.html
+    │   │   ├── ebay_template_modern_full.html
+    │   │   ├── template dinamico prova.html
+    │   │   ├── template ebay completo.html
+    │   │   ├── template_completov2.html
+    │   │   ├── template_ebay_+ricetta_con_foto.html
+    │   │   ├── template_ebay+ricetta.html
+    │   │   ├── template_final_ebay.html
+    │   │   └── template_segnaposto_prova.html
+    │   └── widgets.py
+    ├── template_builder.egg-info
+    │   ├── dependency_links.txt
+    │   ├── PKG-INFO
+    │   ├── requires.txt
+    │   ├── SOURCES.txt
+    │   └── top_level.txt
+    └── tests
+        ├── __pycache__
+        │   ├── test_assets.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_audit_placeholders.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_builder_core_collect.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_builder_core_images.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_builder_core.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_builder_import.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_cli.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_dnd_images.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_filters.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_images_service.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_images.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_jinja_integration.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_live_validation.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_model.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_placeholders_audit.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_placeholders.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_preview_engine_import.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_preview_engine.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_regression.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_smart_scroll.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_step_image_bind_alts.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_step_image_helpers.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_step_image.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_storage_migration.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_storage_service.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_text_service.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_text.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_tooltips.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_ui_utils.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_undo_redo_ui.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_widgets_alt.cpython-313-pytest-8.3.5.pyc
+        │   ├── test_widgets_full.cpython-313-pytest-8.3.5.pyc
+        │   └── test_widgets.cpython-313-pytest-8.3.5.pyc
+        ├── test_audit_placeholders.py
+        ├── test_builder_core_collect.py
+        ├── test_builder_import.py
+        ├── test_dnd_images.py
+        ├── test_images_service.py
+        ├── test_live_validation.py
+        ├── test_model.py
+        ├── test_placeholders.py
+        ├── test_preview_engine.py
+        ├── test_regression.py
+        ├── test_smart_scroll.py
+        ├── test_step_image_bind_alts.py
+        ├── test_step_image_helpers.py
+        ├── test_step_image.py
+        ├── test_storage_migration.py
+        ├── test_storage_service.py
+        ├── test_text_service.py
+        ├── test_tooltips.py
+        ├── test_undo_redo_ui.py
+        ├── test_widgets_alt.py
+        └── test_widgets.py
 
-```bash
-pip install -e .[test]  # installa in modalità editable con dipendenze test
-```
-
-## Quick start
-
-```python
-from template_builder.builder_core import TemplateBuilderApp
-
-app = TemplateBuilderApp()
-if app.root:  # avvia solo se è disponibile un display grafico
-    app.root.mainloop()
-```
-
-## Struttura del repository
-
-Un esempio di anteprima è visibile in `docs/img/overview.png`.
-
-- `template_builder/builder_core.py` – controller principale dell'applicazione.
-- `template_builder/widgets.py` – widget Tk personalizzati (placeholder, repeater immagini…).
-- `template_builder/services/` – moduli **puri** per testo, immagini e storage.
-- `template_builder/infrastructure/` – wrapper (per ora semplici stub) dei moduli legacy.
-- `template_builder/model.py` e `step_image.py` – dataclass e helper per le immagini passo‑passo.
-- `template_builder/filters.py` – filtri Jinja2 opzionali.
-- `templates/` – template HTML di esempio utilizzati dalla GUI.
-- `tests/` – suite Pytest completa.
-
-Per eseguire i test:
-```bash
-pytest -q
-```
-## License
-Questo progetto è distribuito con licenza MIT.
+    20 directories, 133 files
